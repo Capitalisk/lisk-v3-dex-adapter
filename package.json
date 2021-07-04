@@ -1,0 +1,29 @@
+{
+  "name": "lisk-v3-dex-adapter",
+  "version": "1.0.0",
+  "description": "DEX adapter module for lisk-core v3 blockchain.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Capitalisk/lisk-v3-dex-adapter.git"
+  },
+  "keywords": [
+    "lisk",
+    "v3",
+    "dex",
+    "adapter"
+  ],
+  "author": "Jonathan Gros-Dubois",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Capitalisk/lisk-v3-dex-adapter/issues"
+  },
+  "homepage": "https://github.com/Capitalisk/lisk-v3-dex-adapter#readme",
+  "dependencies": {
+    "knex": "^0.21.16",
+    "pg": "^8.5.1"
+  }
+}
