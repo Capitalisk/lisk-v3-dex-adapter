@@ -24,6 +24,7 @@
   "homepage": "https://github.com/Capitalisk/lisk-v3-dex-adapter#readme",
   "dependencies": {
     "knex": "^0.21.16",
+    "lisk-framework": "^0.8.4",
     "pg": "^8.5.1"
   },
   "devDependencies": {
