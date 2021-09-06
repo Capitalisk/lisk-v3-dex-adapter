@@ -4,7 +4,8 @@
   "description": "DEX adapter module for lisk-core v3 blockchain.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node main.js"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,8 @@
   "dependencies": {
     "knex": "^0.21.16",
     "lisk-framework": "^0.8.4",
+    "@liskhq/lisk-chain": "^0.3.2",
+    "@liskhq/lisk-db": "^0.2.0",
     "pg": "^8.5.1"
   },
   "devDependencies": {
