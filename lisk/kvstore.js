@@ -1,8 +1,19 @@
-const {KVStore} = require('@liskhq/lisk-db')
+let {KVStore} = require('@liskhq/lisk-db')
+const levelup  = require('levelup');
+const rocksDB = require('rocksdb');
 
-class RocksDBKVStore extends KVStore {
+class RocksDbReadonlyKVStore {
     constructor(dbPath) {
-        super(dbPath);
+        this._db = levelup(rocksDB(dbPath), {readOnly: true});
+    }
+}
+
+Object.setPrototypeOf(RocksDbReadonlyKVStore.prototype, KVStore.prototype);
+RocksDbReadonlyKVStore.constructor = RocksDbReadonlyKVStore
+
+class RocksDBKVStore extends RocksDbReadonlyKVStore {
+    constructor(dbPath) {
+        super(dbPath)
     }
 }
 

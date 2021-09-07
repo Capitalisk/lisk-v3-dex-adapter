@@ -9,7 +9,7 @@ async function main() {
     const lastBlock = await rocksDBRepository.findLastBlockHeader()
     console.log(lastBlock)
     const lastBlockId = hexBufferToString(lastBlock.id) // id is a buffer
-    const block = await rocksDBRepository.findBlockHeaderByID(lastBlockId)
+    const block = await rocksDBRepository.findBlockHeaderById(lastBlockId)
     console.log(block)
 }
 

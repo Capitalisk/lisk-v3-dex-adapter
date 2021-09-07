@@ -7,6 +7,7 @@ const {toHexBuffer} = require('../utils')
 
 
 class LiskRepository extends DataAccess {
+
     constructor(blockChainDBPath) {
         const db = new RocksDBKVStore(blockChainDBPath)
         const modules = Application.getDefaultModules()
@@ -32,47 +33,45 @@ class LiskRepository extends DataAccess {
 
     findBlockHeaderById = async (blockID) => await this.getBlockHeaderByID(toHexBuffer(blockID))
 
-    findBlockHeaderByID = async (blockID) => await this.getRawBlockHeaderByID(toHexBuffer(blockID))
+    findRawBlockHeaderByID = async (blockID) => await this.getRawBlockHeaderByID(toHexBuffer(blockID))
 
-    blockExists = async (blockID) => await this.blockHeaderExists(toHexBuffer(blockID))
+    findIfBlockExists = async (blockID) => await this.blockHeaderExists(toHexBuffer(blockID))
 
-    findBlockHeadersByIDs = async (blockIDs) => await this.getBlockHeadersByIDs(blockIDs.map(toHexBuffer))
+    findBlockHeadersByIDs = async (...blockIDs) => await this.getBlockHeadersByIDs(blockIDs.map(toHexBuffer))
 
     findLastBlockHeader = async (blockID) => await this.getLastBlockHeader()
 
-    // getBlockHeaderByHeight(height: number): Promise<BlockHeader>;
-    // getBlockHeadersByHeightBetween(fromHeight: number, toHeight: number): Promise<BlockHeader[]>;
-    // getBlockHeadersWithHeights(heightList: ReadonlyArray<number>): Promise<BlockHeader[]>;
-    // getHighestCommonBlockID(arrayOfBlockIds: ReadonlyArray<Buffer>): Promise<Buffer | undefined>;
-    // getBlockByID<T>(id: Buffer): Promise<Block<T>>;
-    // getBlocksByIDs(arrayOfBlockIds: ReadonlyArray<Buffer>): Promise<Block[]>;
-    // getBlockByHeight(height: number): Promise<Block>;
-    // getBlocksByHeightBetween(fromHeight: number, toHeight: number): Promise<Block[]>;
-    // getLastBlock(): Promise<Block>;
-    // isBlockPersisted(blockId: Buffer): Promise<boolean>;
-    // getTempBlocks(): Promise<Block[]>;
-    // isTempBlockEmpty(): Promise<boolean>;
-    // clearTempBlocks(): Promise<void>;
-    // getChainState(key: string): Promise<Buffer | undefined>;
-    // getConsensusState(key: string): Promise<Buffer | undefined>;
-    // setConsensusState(key: string, val: Buffer): Promise<void>;
-    // getAccountsByPublicKey(arrayOfPublicKeys: ReadonlyArray<Buffer>): Promise<Account[]>;
-    // getAccountByAddress<T>(address: Buffer): Promise<Account<T>>;
-    // getEncodedAccountByAddress(address: Buffer): Promise<Buffer>;
-    // getAccountsByAddress<T>(arrayOfAddresses: ReadonlyArray<Buffer>): Promise<Account<T>[]>;
-    // getTransactionByID(id: Buffer): Promise<Transaction>;
-    // getTransactionsByIDs(arrayOfTransactionIds: ReadonlyArray<Buffer>): Promise<Transaction[]>;
-    // isTransactionPersisted(transactionId: Buffer): Promise<boolean>;
-    // decode<T = BlockHeaderAsset>(buffer: Buffer): Block<T>;
-    // encode(block: Block<unknown>): Buffer;
-    // decodeBlockHeader<T = BlockHeaderAsset>(buffer: Buffer): BlockHeader<T>;
-    // encodeBlockHeader<T = BlockHeaderAsset>(blockHeader: BlockHeader<T>, skipSignature?: boolean): Buffer;
-    // decodeAccount<T>(buffer: Buffer): Account<T>;
-    // encodeAccount<T>(account: Account<T>): Buffer;
-    // decodeTransaction(buffer: Buffer): Transaction;
-    // encodeTransaction(tx: Transaction): Buffer;
-    // saveBlock(block: Block, stateStore: StateStore, finalizedHeight: number, removeFromTemp?: boolean): Promise<void>;
-    // deleteBlock(block: Block, stateStore: StateStore, saveToTemp?: boolean): Promise<Account[]>;
+    findBlockHeaderByHeight = async (height) => await this.getBlockHeaderByHeight(height)
+
+    findBlockHeadersByHeightBetween = async (fromHeight, toHeight) => await this.getBlockHeadersByHeightBetween(fromHeight, toHeight)
+
+    findBlockHeaderWithHeights = async (heightList) => await this.getBlockHeadersWithHeights(heightList)
+
+    findHighestCommonBlockID = async (...blockIDs) => await this.getHighestCommonBlockID(blockIDs.map(toHexBuffer))
+
+    findBlockByID = async (blockID) => await this.getBlockByID(toHexBuffer(blockID))
+
+    findBlocksByIDs = async (...blockIDs) => await this.getBlocksByIDs(blockIDs.map(toHexBuffer))
+
+    findBlockByHeight = async (height) => await this.getBlockByHeight(height)
+
+    findBlocksByHeightBetween = async (fromHeight, toHeight) => await this.getBlocksByHeightBetween(fromHeight, toHeight)
+
+    findLastBlock = async () => await this.getLastBlock()
+
+    findIfBlockPersisted = async (blockID) => await this.isBlockPersisted(toHexBuffer(blockID))
+
+    findAccountsByPublicKey = async (...publicKeys) => await this.getAccountsByPublicKey(publicKeys.map(toHexBuffer))
+
+    findAccountByAddress = async (address) => await this.getAccountByAddress(toHexBuffer(address))
+
+    findAccountsByAddress = async (...addresses) => await this.getAccountsByAddress(addresses.map(toHexBuffer))
+
+    findTransactionByID = async (id) => await this.getTransactionByID(toHexBuffer(id))
+
+    findTransactionsByIDs = async (...ids) => await this.getTransactionsByIDs(ids.map(toHexBuffer))
+
+    findIfTransactionPersisted = async (id) => await this.isTransactionPersisted(toHexBuffer(id))
 }
 
 module.exports = {LiskRepository}
