@@ -11,10 +11,4 @@ class RocksDbReadonlyKVStore {
 Object.setPrototypeOf(RocksDbReadonlyKVStore.prototype, KVStore.prototype);
 RocksDbReadonlyKVStore.constructor = RocksDbReadonlyKVStore
 
-class RocksDBKVStore extends RocksDbReadonlyKVStore {
-    constructor(dbPath) {
-        super(dbPath)
-    }
-}
-
-module.exports = {RocksDBKVStore}
+module.exports = {RocksDbReadonlyKVStore}

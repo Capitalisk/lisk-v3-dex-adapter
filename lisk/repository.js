@@ -1,4 +1,4 @@
-const {RocksDBKVStore} = require('./kvstore');
+const {RocksDbReadonlyKVStore} = require('./kvstore');
 const {LiskStorageMiddleware} = require('./storageMiddleware');
 const {Application} = require('lisk-framework');
 const {getAccountSchemaWithDefault, getRegisteredBlockAssetSchema} = require('@liskhq/lisk-chain')
@@ -9,7 +9,7 @@ const {toHexBuffer} = require('../utils')
 class LiskRepository extends DataAccess {
 
     constructor(blockChainDBPath) {
-        const db = new RocksDBKVStore(blockChainDBPath)
+        const db = new RocksDbReadonlyKVStore(blockChainDBPath)
         const modules = Application.getDefaultModules()
         let moduleAccountSchemas = {}
         for (let module of modules) {
@@ -56,7 +56,7 @@ class LiskRepository extends DataAccess {
     findBlockByHeight = async (height) => await this.getBlockByHeight(height)
 
     findBlocksByHeightBetween = async (fromHeight, toHeight) => await this.getBlocksByHeightBetween(fromHeight, toHeight)
-
+c
     findLastBlock = async () => await this.getLastBlock()
 
     findIfBlockPersisted = async (blockID) => await this.isBlockPersisted(toHexBuffer(blockID))
