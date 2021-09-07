@@ -41,6 +41,11 @@ class LiskRepository extends DataAccess {
 
     findLastBlockHeader = async (blockID) => await this.getLastBlockHeader()
 
+    findFirstBlockHeader = async (blockID) => {
+        const block = await this._storage.getFirstBlockHeader();
+        return this._blockHeaderAdapter.decode(block);
+    }
+
     findBlockHeaderByHeight = async (height) => await this.getBlockHeaderByHeight(height)
 
     findBlockHeadersByHeightBetween = async (fromHeight, toHeight) => await this.getBlockHeadersByHeightBetween(fromHeight, toHeight)
@@ -58,6 +63,11 @@ class LiskRepository extends DataAccess {
     findBlocksByHeightBetween = async (fromHeight, toHeight) => await this.getBlocksByHeightBetween(fromHeight, toHeight)
 c
     findLastBlock = async () => await this.getLastBlock()
+
+    findFirstBlock = async () => {
+        const block = await this._storage.getFirstBlock();
+        return this._decodeRawBlock(block);
+    }
 
     findIfBlockPersisted = async (blockID) => await this.isBlockPersisted(toHexBuffer(blockID))
 

@@ -8,9 +8,13 @@ async function main() {
     const rocksDBRepository = new LiskRepository(blockChainDBPath)
     const lastBlock = await rocksDBRepository.findLastBlockHeader()
     console.log(lastBlock)
+
     const lastBlockId = hexBufferToString(lastBlock.id) // id is a buffer
-    const block = await rocksDBRepository.findBlockHeaderById(lastBlockId)
+    const block = await rocksDBRepository.findBlockByID(lastBlockId)
     console.log(block)
+
+    const firstBlock = await rocksDBRepository.findFirstBlock()
+    console.log(firstBlock)
 }
 
 (async () =>await main())()
