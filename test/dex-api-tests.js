@@ -1,7 +1,9 @@
 const assert = require('assert');
-const wait = require('./utils/wait');
 
 const LiskV3DEXAdapterModule = require('../index');
+const Channel = require('./utils/channel');
+const AppModuleMock = require('./utils/app');
+const wait = require('./utils/wait');
 
 // This test suite can be adapted to check whether or not a custom chain module is compatible with Lisk DEX.
 // All the boilerplate can be modified except the 'it' blocks where the assertions are made.
@@ -24,7 +26,13 @@ describe('DEX API tests', async () => {
       }
     });
 
-    await adapterModule.load(channel, moduleOptions);
+    this.channel = new Channel({
+      modules: {
+        app: new AppModuleMock()
+      }
+    });
+
+    await adapterModule.load(this.channel);
   });
 
   after(async () => {
@@ -33,27 +41,22 @@ describe('DEX API tests', async () => {
 
   describe('module state', async () => {
 
-    it('should synch blockchain data', async () => {
-
-      await wait(10000);
+    it('should expose an info property', async () => {
+      let moduleInfo = adapterModule.info;
+      assert.equal(!!moduleInfo.author, true);
+      assert.equal(!!moduleInfo.version, true);
+      assert.equal(!!moduleInfo.name, true);
     });
 
-    // it('should expose an info property', async () => {
-    //   let moduleInfo = adapterModule.info;
-    //   assert.equal(!!moduleInfo.author, true);
-    //   assert.equal(!!moduleInfo.version, true);
-    //   assert.equal(!!moduleInfo.name, true);
-    // });
-    //
-    // it('should expose an alias property', async () => {
-    //   assert.equal(!!adapterModule.alias, true);
-    // });
-    //
-    // it('should expose an events property', async () => {
-    //   let events = adapterModule.events;
-    //   assert.equal(events.includes('bootstrap'), true);
-    //   assert.equal(events.includes('chainChanges'), true);
-    // });
+    it('should expose an alias property', async () => {
+      assert.equal(!!adapterModule.alias, true);
+    });
+
+    it('should expose an events property', async () => {
+      let events = adapterModule.events;
+      assert.equal(events.includes('bootstrap'), true);
+      assert.equal(events.includes('chainChanges'), true);
+    });
 
   });
 
