@@ -1,4 +1,5 @@
 const HttpClient = require('./client')
+const metaStore = require('./meta')
 class LiskServiceRepository {
 
     constructor(config) {
@@ -22,6 +23,12 @@ class LiskServiceRepository {
     getNetworkStats = async () => await this.get('/api/v2/network/statistics')
 
     getFees = async () => await this.get('/api/v2/fees')
+
+    getAccounts = async (filterParams) => await this.get(metaStore.Accounts.path, filterParams)
+
+    getTransactions = async (filterParams) => await this.get(metaStore.Transactions.path, filterParams)
+
+    getBlocks = async (filterParams) => await this.get(metaStore.Blocks.path, filterParams)
 }
 
 module.exports = LiskServiceRepository
