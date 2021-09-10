@@ -5,15 +5,21 @@ class LiskServiceRepository {
         this.liskServiceClient = new HttpClient(config)
     }
 
-    getNetworkStatus = async () => {
-        const response = await this.liskServiceClient.get("/api/v2/network/status")
+    /**
+     * For getting data at given path, with given filter params
+     * @param metaStorePath - Meta store path to find the data (refer to meta.js)
+     * @param filterParams - filter param object (key-value pairs)
+     * @returns {Promise<*>}
+     */
+
+    get = async (metaStorePath, filterParams = {}) => {
+        const response = await this.liskServiceClient.get(metaStorePath, filterParams)
         return response.data
     }
 
-    getNetworkStats = async () => {
-        const response = await this.liskServiceClient.get("/api/v2/network/statistics")
-        return response.data
-    }
+    getNetworkStatus = async () => await this.get('/api/v2/network/status')
+
+    getNetworkStats = async () => await this.get('/api/v2/network/statistics')
 }
 
 module.exports = LiskServiceRepository
