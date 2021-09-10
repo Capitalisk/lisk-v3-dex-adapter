@@ -18,6 +18,13 @@ class LiskServiceRepository {
         return response.data
     }
 
+    post = async (metaStorePath, payload = {}) => {
+        const response = await this.liskServiceClient.post(metaStorePath, payload)
+        return response.data
+    }
+
+    postTransaction = async (payload) => await this.post(metaStore.Transactions.path, payload)
+
     getNetworkStatus = async () => await this.get('/api/v2/network/status')
 
     getNetworkStats = async () => await this.get('/api/v2/network/statistics')
