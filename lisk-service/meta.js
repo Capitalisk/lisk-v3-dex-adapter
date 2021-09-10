@@ -8,11 +8,11 @@ const Store = {
     Accounts: {
         path: '/api/v2/accounts',
         filter: {
-            address: 'address',
+            address: 'address', // Resolves new and old address system
             publicKey: 'publicKey',
             username: 'username',
             isDelegate: 'isDelegate',
-            status: 'status',
+            status: 'status', // [active, standby, banned, punished, non-eligible] (Multiple choice possible i.e. active,banned)
             search: 'search',
             limit: 'limit',
             offset: 'offset',
@@ -21,26 +21,19 @@ const Store = {
         sortBy: {
             balanceAsc: 'balance:asc',
             balanceDesc: 'balance:desc',
-            rankAsc: 'rank:asc',
+            rankAsc: 'rank:asc',        // Rank is dedicated to delegate accounts
             randDesc: 'rank:desc',
-        },
-        delegateStatus: {
-            active: 'active',
-            standby: 'standby',
-            banned: 'banned',
-            punished: 'punished',
-            nonEligible: 'non-eligible',
         },
     },
     Blocks: {
         path : '/api/v2/blocks',
         filter : {
             blockId: 'blockId',
-            height : 'height',
-            generatorAddress : 'generatorAddress',
+            height : 'height', // Can be expressed as an interval ie. 1:20
+            generatorAddress : 'generatorAddress', // Resolves new and old address system
             generatorPublicKey: 'generatorPublicKey',
             generatorUsername: 'generatorUsername',
-            timestamp: 'timestamp',
+            timestamp: 'timestamp', // Can be expressed as interval ie. 100000:200000
             limit: 'limit',
             offset: 'offset',
             sort: 'sort'
@@ -56,22 +49,22 @@ const Store = {
         path : '/api/v2/transactions',
         filter : {
             transactionId: 'transactionId',
-            moduleAssetId: 'moduleAssetId',
-            moduleAssetName: 'moduleAssetName',
+            moduleAssetId: 'moduleAssetId', // Transfer transaction: moduleID = 2,assetID = 0
+            moduleAssetName: 'moduleAssetName', // Transfer transaction: moduleName = token, assetName = transfer
             senderAddress: 'senderAddress',
             senderPublicKey: 'senderPublicKey',
             senderUsername: 'senderUsername',
             recipientAddress: 'recipientAddress',
             recipientPublicKey: 'recipientPublicKey',
             recipientUsername: 'recipientUsername',
-            amount: 'amount',
-            timestamp: 'timestamp',
+            amount: 'amount', // Can be expressed as interval ie. 100000:200000
+            timestamp: 'timestamp', // Can be expressed as interval ie. 100000:200000
             blockId: 'blockId',
             height: 'height',
-            search: 'search',
-            data: 'data',
+            search: 'search', // Wildcard search
+            data: 'data', // Wildcard search
             includePending: 'includePending',
-            nonce: 'nonce',
+            nonce: 'nonce', // In conjunction with senderAddress
             limit: 'limit',
             offset: 'offset',
             sort: 'sort'
@@ -87,15 +80,15 @@ const Store = {
         path : '/api/v2/transactions/statistics/',
         filter: {
             interval : 'interval', // ['day', 'month']
-            limit: 'limit',
-            offset: 'offset'
+            limit: 'limit', // default 10
+            offset: 'offset', // default 0
         }
     },
     TransactionSchema : {
         path : '/api/v2/transactions/schemas',
         filter: {
-            moduleAssetId: 'moduleAssetId',
-            moduleAssetName: 'moduleAssetName'
+            moduleAssetId: 'moduleAssetId', // Transfer transaction: moduleID = 2,assetID = 0 (ModuleId:AssetId /[0-9]+:[0-9]+/)
+            moduleAssetName: 'moduleAssetName' // Transfer transaction: moduleName = token, assetName = transfer (ModuleName:AssetName /[a-z]+:[a-z]+/)
         }
     },
     Network: {
@@ -105,9 +98,9 @@ const Store = {
             networkVersion: 'networkVersion',
             state: 'state', // ['connected', 'disconnected', 'any']
             height: 'height',
-            limit: 'limit',
-            offset: 'offset',
-            sort: 'sort'
+            limit: 'limit', // default 10
+            offset: 'offset', // default 0
+            sort: 'sort' // default "height:desc"
         },
         sortBy : {
             heightAsc: 'height:asc',
@@ -119,7 +112,7 @@ const Store = {
     SentVotes: {
         path: '/api/v2/votes_sent',
         filter: {
-            address: 'address',
+            address: 'address', // Resolves only new address system
             publicKey: 'publicKey',
             username: 'username',
         },
@@ -127,19 +120,19 @@ const Store = {
     ReceivedVotes: {
         path: '/api/v2/votes_received',
         filter: {
-            address: 'address',
+            address: 'address', // Resolves only new address system
             publicKey: 'publicKey',
             username: 'username',
             aggregate: 'aggregate',
-            limit: 'limit',
-            offset: 'offset',
+            limit: 'limit', // default 10
+            offset: 'offset', // default 0
         },
     },
     RoundForgers: {
         path: '/api/v2/forgers',
         filter: {
-            limit: 'limit',
-            offset: 'offset',
+            limit: 'limit', // default 10
+            offset: 'offset', // default 0
         },
     },
 };
