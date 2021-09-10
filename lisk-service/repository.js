@@ -20,6 +20,8 @@ class LiskServiceRepository {
     getNetworkStatus = async () => await this.get('/api/v2/network/status')
 
     getNetworkStats = async () => await this.get('/api/v2/network/statistics')
+
+    getFees = async () => await this.get('/api/v2/fees')
 }
 
 module.exports = LiskServiceRepository

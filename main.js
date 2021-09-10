@@ -5,6 +5,7 @@ async function main() {
     const liskRepo = new LiskRepository({baseUrl: liskTestnetUrl, fallbacks : []});
     console.log(await liskRepo.getNetworkStatus())
     console.log(await liskRepo.getNetworkStats())
+    console.log(await liskRepo.getFees())
 }
 
 (async () => await main())()

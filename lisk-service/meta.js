@@ -32,9 +32,90 @@ const Store = {
             nonEligible: 'non-eligible',
         },
     },
-    Blocks: '/api/v2/blocks',
-    Transactions: '/api/v2/transactions',
-    Network: '/api/v2/peers',
+    Blocks: {
+        path : '/api/v2/blocks',
+        filter : {
+            blockId: 'blockId',
+            height : 'height',
+            generatorAddress : 'generatorAddress',
+            generatorPublicKey: 'generatorPublicKey',
+            generatorUsername: 'generatorUsername',
+            timestamp: 'timestamp',
+            limit: 'limit',
+            offset: 'offset',
+            sort: 'sort'
+        },
+        sortBy: {
+            heightAsc: 'height:asc',
+            heightDesc: 'height:desc',
+            timestampAsc: 'timestamp:asc',
+            timestampDesc: 'timestamp:desc',
+        },
+    },
+    Transactions: {
+        path : '/api/v2/transactions',
+        filter : {
+            transactionId: 'transactionId',
+            moduleAssetId: 'moduleAssetId',
+            moduleAssetName: 'moduleAssetName',
+            senderAddress: 'senderAddress',
+            senderPublicKey: 'senderPublicKey',
+            senderUsername: 'senderUsername',
+            recipientAddress: 'recipientAddress',
+            recipientPublicKey: 'recipientPublicKey',
+            recipientUsername: 'recipientUsername',
+            amount: 'amount',
+            timestamp: 'timestamp',
+            blockId: 'blockId',
+            height: 'height',
+            search: 'search',
+            data: 'data',
+            includePending: 'includePending',
+            nonce: 'nonce',
+            limit: 'limit',
+            offset: 'offset',
+            sort: 'sort'
+        },
+        sortBy: {
+            amountAsc: 'amount:asc',
+            amountDesc: 'amount:desc',
+            timestampAsc: 'timestamp:asc',
+            timestampDesc: 'timestamp:desc',
+        }
+    },
+    TransactionStats : {
+        path : '/api/v2/transactions/statistics/',
+        filter: {
+            interval : 'interval', // ['day', 'month']
+            limit: 'limit',
+            offset: 'offset'
+        }
+    },
+    TransactionSchema : {
+        path : '/api/v2/transactions/schemas',
+        filter: {
+            moduleAssetId: 'moduleAssetId',
+            moduleAssetName: 'moduleAssetName'
+        }
+    },
+    Network: {
+        path : '/api/v2/peers',
+        filter: {
+            ip: 'ip',
+            networkVersion: 'networkVersion',
+            state: 'state', // ['connected', 'disconnected', 'any']
+            height: 'height',
+            limit: 'limit',
+            offset: 'offset',
+            sort: 'sort'
+        },
+        sortBy : {
+            heightAsc: 'height:asc',
+            heightDesc: 'height:desc',
+            networkVersionAsc : 'networkVersion:asc',
+            networkVersionDesc : 'networkVersion:desc'
+        }
+    },
     SentVotes: {
         path: '/api/v2/votes_sent',
         filter: {
