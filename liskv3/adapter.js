@@ -12,10 +12,10 @@ const mkdir = util.promisify(fs.mkdir);
 
 const defaultConfig = require('../defaults/config');
 const packageJSON = require('../package.json');
-const LiskRepository = require('../lisk-service/repository');
-const metaRepo = require('../lisk-service/meta');
+const LiskServiceRepository = require('../lisk-service/repository');
+const metaStore = require('../lisk-service/meta');
 const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistError, accountWasNotMultisigError, accountDidNotExistError} = require('./errors');
-const {firstOrNull} = require('./utils')
+const {firstOrNull} = require('./utils');
 const DEFAULT_MODULE_ALIAS = 'lisk_v3_dex_adapter';
 
 class LiskV3DEXAdapter {
@@ -24,7 +24,7 @@ class LiskV3DEXAdapter {
         this.appConfig = appConfig;
         this.alias = alias || DEFAULT_MODULE_ALIAS;
         this.logger = logger;
-        this.liskRepository = new LiskRepository({config, logger});
+        this.liskServiceRepo = new LiskServiceRepository({config, logger});
     }
 
     get dependencies() {
@@ -53,45 +53,39 @@ class LiskV3DEXAdapter {
         };
     }
 
-    getMultisigWalletMembers = async ({params: { walletAddress }}) => {
+    isMultiSigAccount = (account) => account.summary.isMultisignature;
+
+    getMultisigWalletMembers = async ({params: {walletAddress}}) => {
         try {
-            const multiSigWalletArray = await this.liskRepository.get(metaRepo.Accounts.path, {
-                    [metaRepo.Accounts.filter.address]: walletAddress,
-                },
-            );
-            const multiSigWallet = firstOrNull(multiSigWalletArray.data)
-            if (multiSigWallet) {
-                if (!multiSigWallet.summary.isMultisignature) {
+            const account = await this.liskServiceRepo.getAccountByAddress(walletAddress);
+            if (account) {
+                if (!this.isMultiSigAccount(account)) {
                     throw new InvalidActionError(accountWasNotMultisigError, `Account with address ${walletAddress} is not a multisig account`);
                 }
-                return multiSigWallet.keys.members.map(({address}) => address);
+                return account.keys.members.map(({address}) => address);
             }
-            return []
+            throw new InvalidActionError(multisigAccountDidNotExistError, `Error getting multisig account with address ${walletAddress}`);
         } catch (err) {
             if (err instanceof InvalidActionError) {
-                throw err
+                throw err;
             }
             throw new InvalidActionError(multisigAccountDidNotExistError, `Error getting multisig account with address ${walletAddress}`, err);
         }
     };
 
-    getMinMultisigRequiredSignatures = async ({params: { walletAddress }}) => {
+    getMinMultisigRequiredSignatures = async ({params: {walletAddress}}) => {
         try {
-            const multiSigWalletArray = await this.liskRepository.get(metaRepo.Accounts.path, {
-                    [metaRepo.Accounts.filter.address]: walletAddress,
-                },
-            );
-            const multiSigWallet = firstOrNull(multiSigWalletArray.data)
-            if (multiSigWallet) {
-                if (!multiSigWallet.summary.isMultisignature) {
+            const account = await this.liskServiceRepo.getAccountByAddress(walletAddress);
+            if (account) {
+                if (!this.isMultiSigAccount(account)) {
                     throw new InvalidActionError(accountWasNotMultisigError, `Account with address ${walletAddress} is not a multisig account`);
                 }
-                return multiSigWallet.keys.numberOfSignatures;
+                return account.keys.numberOfSignatures;
             }
-            return 0;
+            throw new InvalidActionError(multisigAccountDidNotExistError, `Error getting multisig account with address ${walletAddress}`);
         } catch (err) {
             if (err instanceof InvalidActionError) {
-                throw err
+                throw err;
             }
             throw new InvalidActionError(multisigAccountDidNotExistError, `Error getting multisig account with address ${walletAddress}`, err);
         }

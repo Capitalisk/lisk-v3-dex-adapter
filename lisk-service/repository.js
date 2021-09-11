@@ -1,9 +1,12 @@
-const HttpClient = require('./client')
-const metaStore = require('./meta')
+const {firstOrNull} = require('../liskv3/utils');
+
+const HttpClient = require('./client');
+const metaStore = require('./meta');
+
 class LiskServiceRepository {
 
     constructor({config, logger}) {
-        this.liskServiceClient = new HttpClient({config, logger})
+        this.liskServiceClient = new HttpClient({config, logger});
     }
 
     /**
@@ -14,28 +17,33 @@ class LiskServiceRepository {
      */
 
     get = async (metaStorePath, filterParams = {}) => {
-        const response = await this.liskServiceClient.get(metaStorePath, filterParams)
-        return response.data
-    }
+        const response = await this.liskServiceClient.get(metaStorePath, filterParams);
+        return response.data;
+    };
 
     post = async (metaStorePath, payload = {}) => {
-        const response = await this.liskServiceClient.post(metaStorePath, payload)
-        return response.data
-    }
+        const response = await this.liskServiceClient.post(metaStorePath, payload);
+        return response.data;
+    };
 
-    postTransaction = async (payload) => await this.post(metaStore.Transactions.path, payload)
+    postTransaction = async (payload) => await this.post(metaStore.Transactions.path, payload);
 
-    getNetworkStatus = async () => await this.get('/api/v2/network/status')
+    getNetworkStatus = async () => await this.get('/api/v2/network/status');
 
-    getNetworkStats = async () => await this.get('/api/v2/network/statistics')
+    getNetworkStats = async () => await this.get('/api/v2/network/statistics');
 
-    getFees = async () => await this.get('/api/v2/fees')
+    getFees = async () => await this.get('/api/v2/fees');
 
-    getAccounts = async (filterParams) => await this.get(metaStore.Accounts.path, filterParams)
+    getAccounts = async (filterParams) => await this.get(metaStore.Accounts.path, filterParams);
 
-    getTransactions = async (filterParams) => await this.get(metaStore.Transactions.path, filterParams)
+    getAccountByAddress = async (walletAddress) => {
+        const accountsList = await this.getAccounts({[metaStore.Accounts.filter.address]: walletAddress});
+        return firstOrNull(accountsList.data);
+    };
 
-    getBlocks = async (filterParams) => await this.get(metaStore.Blocks.path, filterParams)
+    getTransactions = async (filterParams) => await this.get(metaStore.Transactions.path, filterParams);
+
+    getBlocks = async (filterParams) => await this.get(metaStore.Blocks.path, filterParams);
 }
 
-module.exports = LiskServiceRepository
+module.exports = LiskServiceRepository;
