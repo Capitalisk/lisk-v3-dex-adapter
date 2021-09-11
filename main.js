@@ -12,7 +12,13 @@ async function main() {
     const adapter = new adpater({config, logger})
     console.log(await adapter.getMultisigWalletMembers({
         params: {
-            walletAddress: "lskbwvtd6sp5f5tpvfnu2v3tuvqbwyyfqqeadcawb"
+            walletAddress: "lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4"
+        }
+    }))
+
+    console.log(await adapter.getMinMultisigRequiredSignatures({
+        params: {
+            walletAddress: "lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4"
         }
     }))
 }
