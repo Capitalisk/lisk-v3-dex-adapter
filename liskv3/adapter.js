@@ -14,7 +14,7 @@ const defaultConfig = require('../defaults/config');
 const packageJSON = require('../package.json');
 const LiskServiceRepository = require('../lisk-service/repository');
 const metaStore = require('../lisk-service/meta');
-const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistError, accountWasNotMultisigError, accountDidNotExistError} = require('./errors');
+const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistError, accountWasNotMultisigError, accountDidNotExistError, transactionBroadcastError} = require('./errors');
 const {firstOrNull} = require('./utils');
 const DEFAULT_MODULE_ALIAS = 'lisk_v3_dex_adapter';
 
@@ -93,30 +93,92 @@ class LiskV3DEXAdapter {
 
     getOutboundTransactions = async ({params: {walletAddress, fromTimestamp, limit, order}}) => {
         try {
-            const transactions = await this.liskServiceRepo.getOutboundTransactions(walletAddress, fromTimestamp, limit, order)
-            return transactions
+            const transactions = await this.liskServiceRepo.getOutboundTransactions(walletAddress, fromTimestamp, limit, order);
+            return transactions;
         } catch (err) {
             throw new InvalidActionError(accountDidNotExistError, `Error getting outbound transactions with account address ${walletAddress}`, err);
         }
-    }
+    };
 
     getInboundTransactionsFromBlock = async ({params: {walletAddress, blockId}}) => {
         try {
-            const transactions = await this.liskServiceRepo.getInboundTransactionsFromBlock(walletAddress, blockId)
-            return transactions
+            const transactions = await this.liskServiceRepo.getInboundTransactionsFromBlock(walletAddress, blockId);
+            return transactions;
         } catch (err) {
             throw new InvalidActionError(accountDidNotExistError, `Error getting inbound transactions with account address ${walletAddress}`, err);
         }
-    }
+    };
 
     getOutboundTransactionsFromBlock = async ({params: {walletAddress, blockId}}) => {
         try {
-            const transactions = await this.liskServiceRepo.getOutboundTransactionsFromBlock(walletAddress, blockId)
-            return transactions
+            const transactions = await this.liskServiceRepo.getOutboundTransactionsFromBlock(walletAddress, blockId);
+            return transactions;
         } catch (err) {
             throw new InvalidActionError(accountDidNotExistError, `Error getting outbound transactions with account address ${walletAddress}`, err);
         }
-    }
+    };
+
+    getLastBlockAtTimestamp = async ({params: {timestamp}}) => {
+        try {
+            const block = await this.liskServiceRepo.getLastBlockBelowTimestamp(timestamp);
+            if (block) {
+                return block;
+            }
+            throw new InvalidActionError(blockDidNotExistError, `Error getting block below timestamp ${timestamp}`);
+        } catch (err) {
+            if (err instanceof InvalidActionError) {
+                throw err;
+            }
+            throw new InvalidActionError(blockDidNotExistError, `Error getting block below timestamp ${timestamp}`, err);
+        }
+    };
+
+    getMaxBlockHeight = async () => {
+        try {
+            const block = await this.liskServiceRepo.getLastBlock();
+            if (block) {
+                return block.height;
+            }
+            throw new InvalidActionError(blockDidNotExistError, 'Error getting block at max height');
+        } catch (err) {
+            if (err instanceof InvalidActionError) {
+                throw err;
+            }
+            throw new InvalidActionError(blockDidNotExistError, 'Error getting block at max height', err);
+        }
+    };
+
+    getBlocksBetweenHeights = async ({params: {fromHeight, toHeight, limit}}) => {
+        try {
+            const blocks = await this.liskServiceRepo.getBlocksBetweenHeight(fromHeight, toHeight, limit);
+            return blocks;
+        } catch (err) {
+            throw new InvalidActionError(blockDidNotExistError, `Error getting block between heights ${fromHeight} - ${toHeight}`, err);
+        }
+    };
+
+    getBlockAtHeight = async ({params: {height}}) => {
+        try {
+            const block = await this.liskServiceRepo.getBlockAtHeight(height);
+            if (block) {
+                return block;
+            }
+            throw new InvalidActionError(blockDidNotExistError, `Error getting block at height ${height}`);
+        } catch (err) {
+            if (err instanceof InvalidActionError) {
+                throw err;
+            }
+            throw new InvalidActionError(blockDidNotExistError, `Error getting block at height ${height}`, err);
+        }
+    };
+
+    postTransaction = async ({params: {transaction}}) => {
+        try {
+            return await this.liskServiceRepo.postTransaction({transaction});
+        } catch (err) {
+            throw new InvalidActionError(transactionBroadcastError, `Error broadcasting transaction to the lisk-service`, err);
+        }
+    };
 
     async load(channel) {
         this.channel = channel;

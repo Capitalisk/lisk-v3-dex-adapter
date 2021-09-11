@@ -22,6 +22,7 @@ const accountDidNotExistError = 'AccountDidNotExistError';
 const accountWasNotMultisigError = 'AccountWasNotMultisigError';
 const blockDidNotExistError = 'BlockDidNotExistError';
 const transactionDidNotExistError = 'TransactionDidNotExistError'
+const transactionBroadcastError = 'TransactionBroadcastError'
 
 module.exports = {
     InvalidActionError,
@@ -29,5 +30,6 @@ module.exports = {
     accountDidNotExistError,
     accountWasNotMultisigError,
     blockDidNotExistError,
-    transactionDidNotExistError
+    transactionDidNotExistError,
+    transactionBroadcastError
 };
