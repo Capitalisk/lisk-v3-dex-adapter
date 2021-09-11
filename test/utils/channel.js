@@ -13,6 +13,7 @@ class Channel {
     }
   }
 
+
   async publish(channelName, data, info) {
     this.emitter.emit(channelName, { data, info });
   }

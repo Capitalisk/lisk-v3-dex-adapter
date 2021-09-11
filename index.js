@@ -12,6 +12,7 @@ const mkdir = util.promisify(fs.mkdir);
 
 const defaultConfig = require('./defaults/config');
 const packageJSON = require('./package.json');
+const LiskRepository = require('./lisk-service/repository')
 
 const DEFAULT_MODULE_ALIAS = 'lisk_v3_dex_adapter';
 
@@ -21,6 +22,7 @@ module.exports = class LiskV3DEXAdapter {
     this.appConfig = appConfig;
     this.alias = alias || DEFAULT_MODULE_ALIAS;
     this.logger = logger;
+    this.liskRepository = new LiskRepository({config, logger})
   }
 
   get dependencies() {
@@ -29,27 +31,22 @@ module.exports = class LiskV3DEXAdapter {
 
   get info() {
     return {
-      author: 'Jonathan Gros-Dubois',
+      author: packageJSON.author,
       version: packageJSON.version,
-      name: DEFAULT_MODULE_ALIAS,
+      name: packageJSON.name,
     };
   }
 
   get events() {
-    return [
-      'bootstrap',
-      'chainChanges'
-    ];
+    return ['bootstrap', 'chainChanges'];
   }
 
   get actions() {
     return {
       getStatus: {
-        handler: () => {
-          return {
-            version: packageJSON.version
-          };
-        }
+        handler: () => ({
+          version: packageJSON.version,
+        })
       }
     };
   }

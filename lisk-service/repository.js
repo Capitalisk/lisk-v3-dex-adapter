@@ -2,8 +2,8 @@ const HttpClient = require('./client')
 const metaStore = require('./meta')
 class LiskServiceRepository {
 
-    constructor(config) {
-        this.liskServiceClient = new HttpClient(config)
+    constructor({config, logger}) {
+        this.liskServiceClient = new HttpClient({config, logger})
     }
 
     /**

@@ -5,10 +5,10 @@ class HttpClient {
     static HttpGetRequestFn = (path, params) => (baseUrl) => axios.get(`${baseUrl}${path}`, {params});
     static HttpPostRequestFn = (path, payload) => (baseUrl) => axios.post(`${baseUrl}${path}`, payload);
 
-    constructor(config) {
+    constructor({config, logger}) {
         this.baseUrl = config.baseUrl;
         this.fallbacks = config.fallbacks;
-        this.logger = config.logger
+        this.logger = logger
     }
 
     tryWithFallback = async (requestFn) => {
