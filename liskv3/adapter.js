@@ -91,6 +91,33 @@ class LiskV3DEXAdapter {
         }
     };
 
+    getOutboundTransactions = async ({params: {walletAddress, fromTimestamp, limit, order}}) => {
+        try {
+            const transactions = await this.liskServiceRepo.getOutboundTransactions(walletAddress, fromTimestamp, limit, order)
+            return transactions
+        } catch (err) {
+            throw new InvalidActionError(accountDidNotExistError, `Error getting outbound transactions with account address ${walletAddress}`, err);
+        }
+    }
+
+    getInboundTransactionsFromBlock = async ({params: {walletAddress, blockId}}) => {
+        try {
+            const transactions = await this.liskServiceRepo.getInboundTransactionsFromBlock(walletAddress, blockId)
+            return transactions
+        } catch (err) {
+            throw new InvalidActionError(accountDidNotExistError, `Error getting inbound transactions with account address ${walletAddress}`, err);
+        }
+    }
+
+    getOutboundTransactionsFromBlock = async ({params: {walletAddress, blockId}}) => {
+        try {
+            const transactions = await this.liskServiceRepo.getOutboundTransactionsFromBlock(walletAddress, blockId)
+            return transactions
+        } catch (err) {
+            throw new InvalidActionError(accountDidNotExistError, `Error getting outbound transactions with account address ${walletAddress}`, err);
+        }
+    }
+
     async load(channel) {
         this.channel = channel;
 
