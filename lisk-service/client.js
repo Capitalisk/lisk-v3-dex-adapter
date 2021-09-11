@@ -16,7 +16,7 @@ class HttpClient {
             try {
                 return await requestFn(fallback)
             } catch (e) {
-                this.logger.warn(`Failed to process data from fallback ${fallback}, trying next fallback`)
+                this.logger.warn(`Failed to get data from fallback ${fallback}, trying next fallback`)
             }
         }
         return null
@@ -27,10 +27,14 @@ class HttpClient {
         try {
             return await getReqFn(this.baseUrl)
         } catch (err) {
-            this.logger.warn(`Failed to get data from ${this.baseUrl}, trying fallbacks in given order`)
-            const response = await this.tryWithFallback(getReqFn)
-            if (response) {
-                return response
+            if (this.fallbacks && this.fallbacks.length > 0) {
+                this.logger.warn(`Failed to get data from ${this.baseUrl}, trying fallbacks in given order`)
+                const response = await this.tryWithFallback(getReqFn)
+                if (response) {
+                    return response
+                }
+            } else {
+                console.warn(`${err} for ${this.baseUrl}, Mo fallbacks found`)
             }
             throw err
         }

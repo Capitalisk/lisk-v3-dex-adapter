@@ -43,19 +43,19 @@ describe('DEX API tests', async () => {
 
     it('should expose an info property', async () => {
       let moduleInfo = adapterModule.info;
-      assert.equal(!!moduleInfo.author, true);
-      assert.equal(!!moduleInfo.version, true);
-      assert.equal(!!moduleInfo.name, true);
+      assert(moduleInfo.author);
+      assert(moduleInfo.version);
+      assert(moduleInfo.name);
     });
 
     it('should expose an alias property', async () => {
-      assert.equal(!!adapterModule.alias, true);
+      assert(adapterModule.alias);
     });
 
     it('should expose an events property', async () => {
       let events = adapterModule.events;
-      assert.equal(events.includes('bootstrap'), true);
-      assert.equal(events.includes('chainChanges'), true);
+      assert(events.includes('bootstrap'));
+      assert(events.includes('chainChanges'));
     });
 
   });
@@ -155,7 +155,7 @@ describe('DEX API tests', async () => {
             limit: 100
           }
         });
-        assert.equal(Array.isArray(transactions), true);
+        assert(Array.isArray(transactions));
         assert.equal(transactions.length, 4);
         assert.equal(transactions[0].senderAddress, clientForger.walletAddress);
         assert.equal(transactions[0].message, '0');
