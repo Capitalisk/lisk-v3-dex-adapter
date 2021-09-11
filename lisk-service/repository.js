@@ -87,7 +87,7 @@ class LiskServiceRepository {
 
     getLastBlock = async () => {
         const blockFilterParams = {
-            [metaStore.Blocks.filter.sort]: metaStore.Blocks.sortBy.timestampDesc,
+            [metaStore.Blocks.filter.sort]: metaStore.Blocks.sortBy.heightDesc,
             [metaStore.Blocks.filter.limit]: 1,
         };
         const blocks = await this.getBlocks(blockFilterParams);
