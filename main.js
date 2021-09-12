@@ -1,4 +1,3 @@
-const LiskRepository = require('./lisk-service/repository')
 const adpater = require('./index')
 async function main() {
     // const liskTestnetUrl = 'https://testnet-service.lisk.com'
@@ -9,7 +8,7 @@ async function main() {
     // console.log(await liskRepo.getNetworkStats())
     // console.log(await liskRepo.getFees())
 
-    const adapter = new adpater({config : {env: 'test'}})
+    const adapter = new adpater({config: {env : 'test'}})
     console.log(await adapter.getMultisigWalletMembers({
         params: {
             walletAddress: "lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4"
@@ -21,6 +20,15 @@ async function main() {
             walletAddress: "lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4"
         }
     }))
+
+    // await adapter.subscribeToBlockChange((type, block) => {
+    //     console.log(`type ${type} : block ${block}`)
+    // })
+    // await sleep(10000000)
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 (async () => await main())()

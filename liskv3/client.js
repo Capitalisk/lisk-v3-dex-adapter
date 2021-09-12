@@ -1,10 +1,10 @@
 const {createWSClient} = require('@liskhq/lisk-api-client');
 
-const waitForIt = require('./utils');
+const {waitForIt} = require('./utils');
 
 class LiskNodeWsClient {
 
-    static RETRY_INTERVAL = 50; // ms
+    static RETRY_INTERVAL = 10 * 1000; // ms
 
     static defaultTestNodeUrl = "wss://testnet.lisk.com";
     static defaultMainNodeUrl = "wss://mainnet.lisk.com";
@@ -40,6 +40,7 @@ class LiskNodeWsClient {
                 return this.wsClient;
             }
         } catch (err) {
+            this.isInstantiating = false;
             this.logger.error(`Error instantiating WS client to ${this.nodeWsUrl}`);
             this.logger.error(err.message);
             if (err.code === 'ECONNREFUSED') throw new Error('ECONNREFUSED: Unable to reach a network node');
