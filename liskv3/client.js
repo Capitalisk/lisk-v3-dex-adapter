@@ -6,8 +6,22 @@ class LiskNodeWsClient {
 
     static RETRY_INTERVAL = 50; // ms
 
+    static defaultTestNodeUrl = "wss://testnet.lisk.com";
+    static defaultMainNodeUrl = "wss://mainnet.lisk.com";
+
+    setDefaultConfig = (config) => {
+        let defaultUrl = LiskNodeWsClient.defaultMainNodeUrl
+        if (config.env === "test") {
+            defaultUrl = LiskNodeWsClient.defaultTestNodeUrl
+        }
+        if (!config.liskWs) {
+            config.liskWs =  defaultUrl
+        }
+    }
+
     constructor({config, logger}) {
-        this.liskAddress = config.liskWs;
+        this.setDefaultConfig(config)
+        this.nodeWsUrl = config.liskWs;
         this.logger = logger;
         this.isInstantiating = false;
         this.wsClient = null;
@@ -20,13 +34,13 @@ class LiskNodeWsClient {
                 if (!this.wsClient || !this.wsClient._channel.isAlive) {
                     this.isInstantiating = true;
                     if (this.wsClient) await this.wsClient.disconnect();
-                    this.wsClient = await createWSClient(`${this.liskAddress}/ws`);
+                    this.wsClient = await createWSClient(`${this.nodeWsUrl}/ws`);
                     this.isInstantiating = false;
                 }
                 return this.wsClient;
             }
         } catch (err) {
-            this.logger.error(`Error instantiating WS client to ${liskAddress}`);
+            this.logger.error(`Error instantiating WS client to ${this.nodeWsUrl}`);
             this.logger.error(err.message);
             if (err.code === 'ECONNREFUSED') throw new Error('ECONNREFUSED: Unable to reach a network node');
 

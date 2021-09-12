@@ -19,7 +19,8 @@ const {firstOrNull} = require('./utils');
 const DEFAULT_MODULE_ALIAS = 'lisk_v3_dex_adapter';
 
 class LiskV3DEXAdapter {
-    constructor({alias, config, appConfig, logger}) {
+
+    constructor({alias, config = {}, appConfig, logger = console} = {config : {}, logger : console}) {
         this.options = {...defaultConfig, ...config};
         this.appConfig = appConfig;
         this.alias = alias || DEFAULT_MODULE_ALIAS;
