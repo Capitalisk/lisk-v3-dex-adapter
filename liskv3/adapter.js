@@ -2,45 +2,17 @@
 
 const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistError, accountWasNotMultisigError, accountDidNotExistError, transactionBroadcastError} = require('./errors');
 const LiskServiceRepository = require('../lisk-service/repository');
+const LiskWSClient = require('./client')
 const packageJSON = require('../package.json');
-
-const defaultConfig = require('../defaults/config');
 const DEFAULT_MODULE_ALIAS = 'lisk_v3_dex_adapter';
 
 class LiskV3DEXAdapter {
 
-    constructor({alias, config = {}, appConfig, logger = console} = {config: {}, logger: console}) {
-        this.options = {...defaultConfig, ...config};
-        this.appConfig = appConfig;
+    constructor({alias, config = {}, logger = console} = {config: {}, logger: console}) {
         this.alias = alias || DEFAULT_MODULE_ALIAS;
         this.logger = logger;
         this.liskServiceRepo = new LiskServiceRepository({config, logger});
-    }
-
-    get dependencies() {
-        return ['app'];
-    }
-
-    get info() {
-        return {
-            author: packageJSON.author,
-            version: packageJSON.version,
-            name: packageJSON.name,
-        };
-    }
-
-    get events() {
-        return ['bootstrap', 'chainChanges'];
-    }
-
-    get actions() {
-        return {
-            getStatus: {
-                handler: () => ({
-                    version: packageJSON.version,
-                }),
-            },
-        };
+        this.liskWsClient = new LiskWSClient({config, logger})
     }
 
     isMultiSigAccount = (account) => account.summary.isMultisignature;
@@ -170,6 +142,26 @@ class LiskV3DEXAdapter {
         }
     };
 
+    subscribeToBlockChange = async(onBlockChangedEvent) => {
+        const wsClient = await this.liskWsClient.getWsClient()
+        const decodedBlock = (data) => this.liskWsClient.block.decode(Buffer.from(data.block, 'hex'));
+        wsClient.subscribe('app:block:new', async data => {
+            try {
+                await onBlockChangedEvent('addBlock', decodedBlock(data))
+            } catch (err) {
+                this.logger.error(`Error while processing the 'app:block:new' event:\n${err.stack}`);
+            }
+        });
+
+        wsClient.subscribe('app:block:delete', async data => {
+            try {
+                await onBlockChangedEvent('removeBlock', decodedBlock(data))
+            } catch (err) {
+                this.logger.error(`Error while processing the 'app:block:delete' event:\n${err.stack}`);
+            }
+        });
+    }
+
     async load(channel) {
         this.channel = channel;
 
@@ -177,12 +169,50 @@ class LiskV3DEXAdapter {
             [this.alias]: {},
         });
 
-        channel.publish(`${this.alias}:bootstrap`);
+        await channel.publish(`${this.alias}:${this.MODULE_BOOTSTRAP_EVENT}`);
+        await this.subscribeToBlockChange(async (eventType, block) => {
+            const eventPayload = {
+                data : {
+                    type : eventType,
+                    block
+                }
+            }
+            await channel.publish(`${this.alias}:${this.MODULE_CHAIN_STATE_CHANGES_EVENT}`, eventPayload);
+        })
     }
 
     async unload() {
     }
 
+
+    get dependencies() {
+        return ['app'];
+    }
+
+    get info() {
+        return {
+            author: packageJSON.author,
+            version: packageJSON.version,
+            name: packageJSON.name,
+        };
+    }
+
+    MODULE_BOOTSTRAP_EVENT = 'bootstrap'
+    MODULE_CHAIN_STATE_CHANGES_EVENT = 'chainChanges'
+
+    get events() {
+        return [this.MODULE_BOOTSTRAP_EVENT, this.MODULE_CHAIN_STATE_CHANGES_EVENT];
+    }
+
+    get actions() {
+        return {
+            getStatus: {
+                handler: () => ({
+                    version: packageJSON.version,
+                }),
+            },
+        };
+    }
 }
 
 module.exports = LiskV3DEXAdapter;

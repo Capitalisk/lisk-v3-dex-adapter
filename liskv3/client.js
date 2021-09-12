@@ -59,6 +59,5 @@ class LiskNodeWsClient {
     };
 }
 
-module.exports = {
-    LiskNodeWsClient,
-};
+module.exports = LiskNodeWsClient
+
