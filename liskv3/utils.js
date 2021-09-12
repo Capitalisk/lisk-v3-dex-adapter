@@ -38,4 +38,18 @@ const sort = (arr, key) => arr.sort((o1, o2) => {
     return o1[key].localeCompare(o2[key]);
 });
 
-module.exports = {isNullOrUndefinedOrEmpty, firstOrDefault, isLocal, isNullOrUndefined, run, sort, arrOrFirstOrNull, isEmpty, firstOrNull,arrOrDefault};
+const waitForIt = (fn, intervalMs = 1000) => new Promise((resolve) => {
+    const checkIfReady = async (that) => {
+        try {
+            const result = await fn();
+            clearInterval(that);
+            if (result !== undefined) resolve(result);
+        } catch (err) {
+            console.debug(`Waiting ${intervalMs}...`);
+        }
+    };
+    const hInterval = setInterval(checkIfReady, intervalMs, this);
+    checkIfReady(hInterval);
+});
+
+module.exports = {isNullOrUndefinedOrEmpty, firstOrDefault, isLocal, isNullOrUndefined, run, sort, arrOrFirstOrNull, isEmpty, firstOrNull,arrOrDefault, waitForIt};
