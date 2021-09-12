@@ -6,16 +6,11 @@ class LiskNodeWsClient {
 
     static RETRY_INTERVAL = 10 * 1000; // ms
 
-    static defaultTestNodeUrl = "wss://testnet.lisk.com";
-    static defaultMainNodeUrl = "wss://mainnet.lisk.com";
+    static defaultNodeUrl = "ws://localhost:8080";
 
     setDefaultConfig = (config) => {
-        let defaultUrl = LiskNodeWsClient.defaultMainNodeUrl
-        if (config.env === "test") {
-            defaultUrl = LiskNodeWsClient.defaultTestNodeUrl
-        }
         if (!config.liskWs) {
-            config.liskWs =  defaultUrl
+            config.liskWs =  LiskNodeWsClient.defaultNodeUrl
         }
     }
 
@@ -56,7 +51,7 @@ class LiskNodeWsClient {
         const nodeWsClient = await waitForIt(this.instantiateClient, LiskNodeWsClient.RETRY_INTERVAL);
         return (nodeWsClient && nodeWsClient._channel && nodeWsClient._channel.invoke)
             ? nodeWsClient
-            : this.getWsClient();
+            : await this.getWsClient();
     };
 }
 

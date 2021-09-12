@@ -144,10 +144,11 @@ class LiskV3DEXAdapter {
 
     subscribeToBlockChange = async(onBlockChangedEvent) => {
         const wsClient = await this.liskWsClient.getWsClient()
-        const decodedBlock = (data) => this.liskWsClient.block.decode(Buffer.from(data.block, 'hex'));
+        const decodedBlock = (data) => wsClient.block.decode(Buffer.from(data.block, 'hex'));
         wsClient.subscribe('app:block:new', async data => {
             try {
-                await onBlockChangedEvent('addBlock', decodedBlock(data))
+                const block = decodedBlock(data)
+                await onBlockChangedEvent('addBlock', block)
             } catch (err) {
                 this.logger.error(`Error while processing the 'app:block:new' event:\n${err.stack}`);
             }
@@ -155,7 +156,8 @@ class LiskV3DEXAdapter {
 
         wsClient.subscribe('app:block:delete', async data => {
             try {
-                await onBlockChangedEvent('removeBlock', decodedBlock(data))
+                const block = decodedBlock(data)
+                await onBlockChangedEvent('removeBlock', block)
             } catch (err) {
                 this.logger.error(`Error while processing the 'app:block:delete' event:\n${err.stack}`);
             }
@@ -174,7 +176,10 @@ class LiskV3DEXAdapter {
             const eventPayload = {
                 data : {
                     type : eventType,
-                    block
+                    block : {
+                        timestamp: block.header.timestamp,
+                        height : block.header.height,
+                    }
                 }
             }
             await channel.publish(`${this.alias}:${this.MODULE_CHAIN_STATE_CHANGES_EVENT}`, eventPayload);

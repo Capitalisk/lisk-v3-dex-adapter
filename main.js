@@ -9,22 +9,22 @@ async function main() {
     // console.log(await liskRepo.getFees())
 
     const adapter = new adpater({config: {env : 'test'}})
-    console.log(await adapter.getMultisigWalletMembers({
-        params: {
-            walletAddress: "lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4"
-        }
-    }))
+    // console.log(await adapter.getMultisigWalletMembers({
+    //     params: {
+    //         walletAddress: "lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4"
+    //     }
+    // }))
+    //
+    // console.log(await adapter.getMinMultisigRequiredSignatures({
+    //     params: {
+    //         walletAddress: "lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4"
+    //     }
+    // }))
 
-    console.log(await adapter.getMinMultisigRequiredSignatures({
-        params: {
-            walletAddress: "lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4"
-        }
-    }))
-
-    // await adapter.subscribeToBlockChange((type, block) => {
-    //     console.log(`type ${type} : block ${block}`)
-    // })
-    // await sleep(10000000)
+    await adapter.subscribeToBlockChange((type, block) => {
+        console.log(`type ${type} : block ${block}`)
+    })
+    await sleep(10000000)
 }
 
 function sleep(ms) {
