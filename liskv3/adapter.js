@@ -1,26 +1,15 @@
 'use strict';
 
-const crypto = require('crypto');
-const fs = require('fs');
-const util = require('util');
-const path = require('path');
-const writeFile = util.promisify(fs.writeFile);
-const readFile = util.promisify(fs.readFile);
-const readdir = util.promisify(fs.readdir);
-const unlink = util.promisify(fs.unlink);
-const mkdir = util.promisify(fs.mkdir);
+const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistError, accountWasNotMultisigError, accountDidNotExistError, transactionBroadcastError} = require('./errors');
+const LiskServiceRepository = require('../lisk-service/repository');
+const packageJSON = require('../package.json');
 
 const defaultConfig = require('../defaults/config');
-const packageJSON = require('../package.json');
-const LiskServiceRepository = require('../lisk-service/repository');
-const metaStore = require('../lisk-service/meta');
-const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistError, accountWasNotMultisigError, accountDidNotExistError, transactionBroadcastError} = require('./errors');
-const {firstOrNull} = require('./utils');
 const DEFAULT_MODULE_ALIAS = 'lisk_v3_dex_adapter';
 
 class LiskV3DEXAdapter {
 
-    constructor({alias, config = {}, appConfig, logger = console} = {config : {}, logger : console}) {
+    constructor({alias, config = {}, appConfig, logger = console} = {config: {}, logger: console}) {
         this.options = {...defaultConfig, ...config};
         this.appConfig = appConfig;
         this.alias = alias || DEFAULT_MODULE_ALIAS;
@@ -194,12 +183,6 @@ class LiskV3DEXAdapter {
     async unload() {
     }
 
-}
-
-function wait(duration) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, duration);
-    });
 }
 
 module.exports = LiskV3DEXAdapter;
