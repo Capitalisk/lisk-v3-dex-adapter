@@ -3,7 +3,7 @@ const assert = require('assert');
 const LiskV3DEXAdapterModule = require('../index');
 const Channel = require('./utils/channel');
 const AppModuleMock = require('./utils/app');
-const wait = require('./utils/wait');
+const {wait} = require('../liskv3/utils');
 
 // This test suite can be adapted to check whether or not a custom chain module is compatible with Lisk DEX.
 // All the boilerplate can be modified except the 'it' blocks where the assertions are made.
@@ -15,7 +15,7 @@ describe('DEX API tests', async () => {
 
   before(async () => {
     adapterModule = new LiskV3DEXAdapterModule({
-      config: {},
+      config: { env: 'test'},
       logger: {
         info: () => {},
         // info: (...args) => console.info.apply(console, args),
@@ -26,58 +26,55 @@ describe('DEX API tests', async () => {
       }
     });
 
-    this.channel = new Channel({
-      modules: {
-        app: new AppModuleMock()
-      }
-    });
-
-    await adapterModule.load(this.channel);
+    // this.channel = new Channel({
+    //   modules: {
+    //     app: new AppModuleMock()
+    //   }
+    // });
+    //
+    // await adapterModule.load(this.channel);
   });
 
   after(async () => {
     await adapterModule.unload();
   });
 
-  describe('module state', async () => {
+  describe('module state', () => {
 
-    it('should expose an info property', async () => {
+    it('should expose an info property', () => {
       let moduleInfo = adapterModule.info;
-      assert.equal(!!moduleInfo.author, true);
-      assert.equal(!!moduleInfo.version, true);
-      assert.equal(!!moduleInfo.name, true);
+      assert(moduleInfo.author);
+      assert(moduleInfo.version);
+      assert(moduleInfo.name);
     });
 
-    it('should expose an alias property', async () => {
-      assert.equal(!!adapterModule.alias, true);
+    it('should expose an alias property', () => {
+      assert(adapterModule.alias);
     });
 
-    it('should expose an events property', async () => {
+    it('should expose an events property', () => {
       let events = adapterModule.events;
-      assert.equal(events.includes('bootstrap'), true);
-      assert.equal(events.includes('chainChanges'), true);
+      assert(events.includes('bootstrap'));
+      assert(events.includes('chainChanges'));
     });
 
   });
 
-  describe.skip('module actions', async () => {
+  describe('module actions', async () => {
 
-    let memberAddessList;
     let memberAccounts = [];
-    let multisigAccount;
     let blockList = [];
-
-    let multisigMemberAPassphrase;
-    let multisigMemberBPassphrase;
 
     describe('getMultisigWalletMembers action', async () => {
 
       it('should return an array of member addresses', async () => {
         let walletMembers = await adapterModule.actions.getMultisigWalletMembers.handler({
           params: {
-            walletAddress: multisigAccount.address
+            walletAddress: 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4'
           }
         });
+        const memberAddessList = ['lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4', 'lskmpnnwk2dcrywz6egczeducykso8ykyj9ppdsrh']
+
         // Must be an array of wallet address strings.
         assert.equal(JSON.stringify(walletMembers.sort()), JSON.stringify(memberAddessList.sort()));
       });
@@ -105,7 +102,7 @@ describe('DEX API tests', async () => {
       it('should return the number of required signatures', async () => {
         let requiredSignatureCount = await adapterModule.actions.getMinMultisigRequiredSignatures.handler({
           params: {
-            walletAddress: multisigAccount.address
+            walletAddress: 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4'
           }
         });
         assert.equal(requiredSignatureCount, 2);
@@ -124,7 +121,7 @@ describe('DEX API tests', async () => {
         }
         assert.notEqual(caughtError, null);
         assert.equal(caughtError.type, 'InvalidActionError');
-        assert.equal(caughtError.name, 'AccountDidNotExistError');
+        assert.equal(caughtError.name, 'MultisigAccountDidNotExistError');
       });
 
       it('should throw an AccountWasNotMultisigError if the account is not a multisig wallet', async () => {
@@ -132,7 +129,7 @@ describe('DEX API tests', async () => {
         try {
           await adapterModule.actions.getMinMultisigRequiredSignatures.handler({
             params: {
-              walletAddress: 'ldpos5f0bc55450657f7fcb188e90122f7e4cee894199'
+              walletAddress: 'lskx5t5nc997jczxn6s7ggoqtwcdbgs3u5r8q5b42'
             }
           });
         } catch (error) {
@@ -147,24 +144,24 @@ describe('DEX API tests', async () => {
 
     describe('getOutboundTransactions action', async () => {
 
+      const senderWalletAddress = 'lskhszrdpk5yzngd885cvsvsuxcko7trsvdpn2moz'
+
       it('should return an array of transactions sent from the specified walletAddress', async () => {
         let transactions = await adapterModule.actions.getOutboundTransactions.handler({
           params: {
-            walletAddress: clientForger.walletAddress,
+            walletAddress: senderWalletAddress,
             fromTimestamp: 0,
             limit: 100
           }
         });
-        assert.equal(Array.isArray(transactions), true);
-        assert.equal(transactions.length, 4);
-        assert.equal(transactions[0].senderAddress, clientForger.walletAddress);
-        assert.equal(transactions[0].message, '0');
-        assert.equal(transactions[1].senderAddress, clientForger.walletAddress);
-        assert.equal(transactions[1].message, '1');
-        assert.equal(transactions[2].senderAddress, clientForger.walletAddress);
-        assert.equal(transactions[2].message, '2');
-        assert.equal(transactions[3].senderAddress, clientForger.walletAddress);
-        assert.equal(transactions[3].message, '3');
+        assert(Array.isArray(transactions));
+        assert.equal(transactions.length, 3);
+        assert.equal(transactions[0].senderAddress, senderWalletAddress);
+        assert.equal(transactions[0].message, '');
+        assert.equal(transactions[1].senderAddress, senderWalletAddress);
+        assert.equal(transactions[1].message, '');
+        assert.equal(transactions[2].senderAddress, senderWalletAddress);
+        assert.equal(transactions[2].message, '');
 
         for (let txn of transactions) {
           assert.equal(typeof txn.id, 'string');
@@ -175,7 +172,7 @@ describe('DEX API tests', async () => {
         }
       });
 
-      it('should return transactions which are more recent than fromTimestamp by default', async () => {
+      it.skip('should return transactions which are more recent than fromTimestamp by default', async () => {
         let transactions = await adapterModule.actions.getOutboundTransactions.handler({
           params: {
             walletAddress: clientForger.walletAddress,
@@ -193,7 +190,7 @@ describe('DEX API tests', async () => {
         assert.equal(transactions[2].message, '3');
       });
 
-      it('should return transactions which are more recent than fromTimestamp when order is desc', async () => {
+      it.skip('should return transactions which are more recent than fromTimestamp when order is desc', async () => {
         let transactions = await adapterModule.actions.getOutboundTransactions.handler({
           params: {
             walletAddress: clientForger.walletAddress,
@@ -215,22 +212,22 @@ describe('DEX API tests', async () => {
       it('should limit the number of transactions based on the specified limit', async () => {
         let transactions = await adapterModule.actions.getOutboundTransactions.handler({
           params: {
-            walletAddress: clientForger.walletAddress,
+            walletAddress: senderWalletAddress,
             fromTimestamp: 0,
             limit: 1
           }
         });
         assert.equal(Array.isArray(transactions), true);
         assert.equal(transactions.length, 1);
-        assert.equal(transactions[0].senderAddress, clientForger.walletAddress);
-        assert.equal(transactions[0].message, '0');
+        assert.equal(transactions[0].senderAddress, senderWalletAddress);
+        assert.equal(transactions[0].message, '');
       });
 
       it('should return an empty array if no transactions can be matched', async () => {
         let transactions = await adapterModule.actions.getOutboundTransactions.handler({
           params: {
-            walletAddress: 'ldpos6312b77c6ca4233141835eb37f8f33a45f18d50f',
-            fromTimestamp: 0,
+            walletAddress: senderWalletAddress,
+            fromTimestamp: 3434323432,
             limit: 100
           }
         });
