@@ -18,6 +18,7 @@ class LiskV3DEXAdapter {
     }
 
     isMultiSigAccount = (account) => account.summary.isMultisignature;
+
     getMultisigWalletMembers = async ({params: {walletAddress}}) => {
         try {
             const account = await this.liskServiceRepo.getAccountByAddress(walletAddress);
@@ -224,11 +225,17 @@ class LiskV3DEXAdapter {
 
     get actions() {
         return {
-            getStatus: {
-                handler: () => ({
-                    version: packageJSON.version,
-                }),
-            },
+            getStatus: {handler: () => ({version: packageJSON.version})},
+            getMultisigWalletMembers : {handler: this.getMultisigWalletMembers},
+            getMinMultisigRequiredSignatures : {handler: this.getMinMultisigRequiredSignatures},
+            getOutboundTransactions : {handler: this.getOutboundTransactions},
+            getInboundTransactionsFromBlock : {handler: this.getInboundTransactionsFromBlock},
+            getOutboundTransactionsFromBlock : {handler: this.getOutboundTransactionsFromBlock},
+            getLastBlockAtTimestamp : {handler: this.getLastBlockAtTimestamp},
+            getMaxBlockHeight : {handler: this.getMaxBlockHeight},
+            getBlocksBetweenHeights : {handler: this.getBlocksBetweenHeights},
+            getBlockAtHeight : {handler: this.getBlockAtHeight},
+            postTransaction : {handler: this.postTransaction}
         };
     }
 }
