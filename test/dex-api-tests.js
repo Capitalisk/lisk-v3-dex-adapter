@@ -3,7 +3,7 @@ const assert = require('assert');
 const LiskV3DEXAdapterModule = require('../index');
 const Channel = require('./utils/channel');
 const AppModuleMock = require('./utils/app');
-const wait = require('./utils/wait');
+const {wait} = require('../liskv3/utils');
 
 // This test suite can be adapted to check whether or not a custom chain module is compatible with Lisk DEX.
 // All the boilerplate can be modified except the 'it' blocks where the assertions are made.

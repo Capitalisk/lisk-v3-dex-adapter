@@ -5,27 +5,25 @@ const metaStore = require('./meta');
 
 class LiskServiceRepository {
 
-    static defaultTestNetUrl = "https://testnet-service.lisk.com";
-    static defaultMainNetUrl = "https://service.lisk.com";
-
-    setDefaultConfig = (config) => {
-        let defaultUrl = LiskServiceRepository.defaultMainNetUrl
-        if (config.env === "test") {
-            defaultUrl = LiskServiceRepository.defaultTestNetUrl
-        }
-        if (!config.baseUrl) {
-            config.baseUrl =  defaultUrl
-        }
-        if (!config.fallbacks) {
-            config.fallbacks = []
-        }
-        config.fallbacks = [...config.fallbacks, defaultUrl]
-    }
+    static defaultTestNetUrl = 'https://testnet-service.lisk.com';
+    static defaultMainNetUrl = 'https://service.lisk.com';
 
     constructor({config, logger}) {
-        this.setDefaultConfig(config)
-        this.liskServiceClient = new HttpClient({config, logger});
+        this.liskServiceClient = new HttpClient({config: this.getDefaultHttpClientConfig(config), logger});
     }
+
+    getDefaultHttpClientConfig = (config) => {
+        let defaultUrl = LiskServiceRepository.defaultMainNetUrl;
+        if (config.env === 'test') {
+            defaultUrl = LiskServiceRepository.defaultTestNetUrl;
+        }
+        const baseUrl = config.liskServiceHost ? config.liskServiceHost : defaultUrl;
+        if (!config.liskServiceHostFallbacks) {
+            config.liskServiceHostFallbacks = [];
+        }
+        const fallbacks = [...config.liskServiceHostFallbacks, defaultUrl];
+        return {baseUrl, fallbacks};
+    };
 
     /**
      * For getting data at given path, with given filter params
@@ -70,9 +68,9 @@ class LiskServiceRepository {
             [metaStore.Transactions.filter.senderAddress]: senderAddress,
             [metaStore.Transactions.filter.timestamp]: `${fromTimestamp}:`,
             [metaStore.Transactions.filter.limit]: limit,
-            [metaStore.Transactions.filter.moduleAssetId]: "2:0", // transfer transaction
-            [metaStore.Transactions.filter.moduleAssetName] : "token:transfer" // token transfer
-        }
+            [metaStore.Transactions.filter.moduleAssetId]: '2:0', // transfer transaction
+            [metaStore.Transactions.filter.moduleAssetName]: 'token:transfer', // token transfer
+        };
         if (order === 'desc') {
             transactionFilterParams[metaStore.Transactions.filter.sort] = metaStore.Transactions.sortBy.timestampDesc;
         }
@@ -83,8 +81,8 @@ class LiskServiceRepository {
         const transactionFilterParams = {
             [metaStore.Transactions.filter.recipientAddress]: recipientAddress,
             [metaStore.Transactions.filter.blockId]: blockId,
-            [metaStore.Transactions.filter.moduleAssetId]: "2:0", // transfer transaction
-            [metaStore.Transactions.filter.moduleAssetName] : "token:transfer" // token transfer
+            [metaStore.Transactions.filter.moduleAssetId]: '2:0', // transfer transaction
+            [metaStore.Transactions.filter.moduleAssetName]: 'token:transfer', // token transfer
         };
         return await this.getTransactions(transactionFilterParams);
     };
@@ -93,8 +91,8 @@ class LiskServiceRepository {
         const transactionFilterParams = {
             [metaStore.Transactions.filter.senderAddress]: senderAddress,
             [metaStore.Transactions.filter.blockId]: blockId,
-            [metaStore.Transactions.filter.moduleAssetId]: "2:0", // transfer transaction
-            [metaStore.Transactions.filter.moduleAssetName] : "token:transfer" // token transfer
+            [metaStore.Transactions.filter.moduleAssetId]: '2:0', // transfer transaction
+            [metaStore.Transactions.filter.moduleAssetName]: 'token:transfer', // token transfer
         };
         return await this.getTransactions(transactionFilterParams);
     };
