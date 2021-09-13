@@ -27,15 +27,21 @@ class HttpClient {
         return null;
     };
 
+    canFallback = (err) => {
+        return !(err && err.response && err.response.status < 500);
+    };
+
     get = async (path, params) => {
         const getReqFn = HttpClient.HttpGetRequestFn(path, params);
         try {
             return await getReqFn(this.baseUrl);
         } catch (err) {
-            this.logger.warn(`Failed to get data from ${this.baseUrl}, trying fallbacks in given order`);
-            const response = await this.tryWithFallback(getReqFn);
-            if (response) {
-                return response;
+            if (this.canFallback(err)) {
+                this.logger.warn(`Failed to get data from ${this.baseUrl}, trying fallbacks in given order`);
+                const response = await this.tryWithFallback(getReqFn);
+                if (response) {
+                    return response;
+                }
             }
             throw err;
         }
@@ -46,12 +52,14 @@ class HttpClient {
         try {
             return await postReqFn(this.baseUrl);
         } catch (err) {
-            this.logger.warn(`Failed to get data from ${this.baseUrl}, trying fallbacks in given order`);
-            const response = await this.tryWithFallback(postReqFn);
-            if (response) {
-                return response;
+            if (this.canFallback(err)) {
+                this.logger.warn(`Failed to get data from ${this.baseUrl}, trying fallbacks in given order`);
+                const response = await this.tryWithFallback(postReqFn);
+                if (response) {
+                    return response;
+                }
+                throw err;
             }
-            throw err;
         }
     };
 }
