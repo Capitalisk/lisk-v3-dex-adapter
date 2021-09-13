@@ -6,8 +6,7 @@ const transactionMapper = ({id, asset : {amount, recipient, data}, sender, block
         timestamp,
         senderAddress : sender.address,
         recipientAddress : recipient.address,
-        // todo - need to check if signature is a signerAddress
-        signatures: signatures.map(address => ({signerAddress: address}))
+        signatures: signatures
     }
 }
 
