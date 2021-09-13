@@ -58,6 +58,9 @@ class LiskV3DEXAdapter {
             const transactions = await this.liskServiceRepo.getOutboundTransactions(walletAddress, fromTimestamp, limit, order);
             return transactions;
         } catch (err) {
+            if (err.response.status === 404) {
+                return []
+            }
             throw new InvalidActionError(accountDidNotExistError, `Error getting outbound transactions with account address ${walletAddress}`, err);
         }
     };
@@ -67,6 +70,9 @@ class LiskV3DEXAdapter {
             const transactions = await this.liskServiceRepo.getInboundTransactionsFromBlock(walletAddress, blockId);
             return transactions;
         } catch (err) {
+            if (err.response.status === 404) {
+                return []
+            }
             throw new InvalidActionError(accountDidNotExistError, `Error getting inbound transactions with account address ${walletAddress}`, err);
         }
     };
@@ -76,6 +82,9 @@ class LiskV3DEXAdapter {
             const transactions = await this.liskServiceRepo.getOutboundTransactionsFromBlock(walletAddress, blockId);
             return transactions;
         } catch (err) {
+            if (err.response.status === 404) {
+                return []
+            }
             throw new InvalidActionError(accountDidNotExistError, `Error getting outbound transactions with account address ${walletAddress}`, err);
         }
     };
@@ -115,6 +124,9 @@ class LiskV3DEXAdapter {
             const blocks = await this.liskServiceRepo.getBlocksBetweenHeight(fromHeight, toHeight, limit);
             return blocks;
         } catch (err) {
+            if (err.response.status === 404) {
+                return []
+            }
             throw new InvalidActionError(blockDidNotExistError, `Error getting block between heights ${fromHeight} - ${toHeight}`, err);
         }
     };

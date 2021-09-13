@@ -21,10 +21,16 @@ async function main() {
     //     }
     // }))
 
-    await adapter.subscribeToBlockChange((type, block) => {
-        console.log(`type ${type} : block ${block}`)
-    })
-    await sleep(10000000)
+    const transactions = await adapter.getOutboundTransactions({params : {
+        limit: 2,
+        fromTimestamp: 87687686868768,
+        walletAddress: 'lskhszrdpk5yzngd885cvsvsuxcko7trsvdpn2moz'
+        }})
+    console.log(transactions)
+    // await adapter.subscribeToBlockChange((type, block) => {
+    //     console.log(`type ${type} : block ${block}`)
+    // })
+    // await sleep(10000000)
 }
 
 function sleep(ms) {

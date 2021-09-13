@@ -49,8 +49,8 @@ const Store = {
         path : '/api/v2/transactions',
         filter : {
             transactionId: 'transactionId',
-            moduleAssetId: 'moduleAssetId', // Transfer transaction: moduleID = 2,assetID = 0
-            moduleAssetName: 'moduleAssetName', // Transfer transaction: moduleName = token, assetName = transfer
+            moduleAssetId: 'moduleAssetId', // Transfer transaction: moduleID = 2,assetID = 0 eg. 2:0
+            moduleAssetName: 'moduleAssetName', // Transfer transaction: moduleName = token, assetName = transfer eg. token:transfer
             senderAddress: 'senderAddress',
             senderPublicKey: 'senderPublicKey',
             senderUsername: 'senderUsername',
