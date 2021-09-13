@@ -66,13 +66,16 @@ class LiskServiceRepository {
     getOutboundTransactions = async (senderAddress, fromTimestamp, limit, order = 'asc') => {
         const transactionFilterParams = {
             [metaStore.Transactions.filter.senderAddress]: senderAddress,
-            [metaStore.Transactions.filter.timestamp]: `${fromTimestamp}:`,
             [metaStore.Transactions.filter.limit]: limit,
             [metaStore.Transactions.filter.moduleAssetId]: '2:0', // transfer transaction
             [metaStore.Transactions.filter.moduleAssetName]: 'token:transfer', // token transfer
         };
-        if (order === 'desc') {
+        if (order === 'asc') {
+            transactionFilterParams[metaStore.Transactions.filter.sort] = metaStore.Transactions.sortBy.timestampAsc;
+            transactionFilterParams[metaStore.Transactions.filter.timestamp]: `${fromTimestamp}:`
+        } else {
             transactionFilterParams[metaStore.Transactions.filter.sort] = metaStore.Transactions.sortBy.timestampDesc;
+            transactionFilterParams[metaStore.Transactions.filter.timestamp]: `0:${fromTimestamp}`
         }
         return await this.getTransactions(transactionFilterParams);
     };
