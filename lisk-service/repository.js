@@ -52,17 +52,17 @@ class LiskServiceRepository {
 
     getFees = async () => await this.get('/api/v2/fees');
 
-    getAccounts = async (filterParams) => await this.get(metaStore.Accounts.path, filterParams);
+    getAccounts = async (filterParams) => (await this.get(metaStore.Accounts.path, filterParams)).data;
 
-    getTransactions = async (filterParams) => await this.get(metaStore.Transactions.path, filterParams);
+    getTransactions = async (filterParams) => (await this.get(metaStore.Transactions.path, filterParams)).data;
 
-    getBlocks = async (filterParams) => await this.get(metaStore.Blocks.path, filterParams);
+    getBlocks = async (filterParams) => (await this.get(metaStore.Blocks.path, filterParams)).data;
 
     getAccountByAddress = async (walletAddress) => {
-        const accountsList = await this.getAccounts({
+        const accounts = await this.getAccounts({
             [metaStore.Accounts.filter.address]: walletAddress,
         });
-        return firstOrNull(accountsList.data);
+        return firstOrNull(accounts);
     };
 
     getOutboundTransactions = async (senderAddress, fromTimestamp, limit, order = 'asc') => {

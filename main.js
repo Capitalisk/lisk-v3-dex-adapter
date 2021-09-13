@@ -23,7 +23,7 @@ async function main() {
 
     const transactions = await adapter.getOutboundTransactions({params : {
         limit: 2,
-        fromTimestamp: 87687686868768,
+        fromTimestamp: 0,
         walletAddress: 'lskhszrdpk5yzngd885cvsvsuxcko7trsvdpn2moz'
         }})
     console.log(transactions)

@@ -4,6 +4,7 @@ const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistErro
 const LiskServiceRepository = require('../lisk-service/repository');
 const httpClient = require('../lisk-service/client')
 const LiskWSClient = require('./client')
+const {blockMapper, transactionMapper} = require('./mapper')
 const packageJSON = require('../package.json');
 const DEFAULT_MODULE_ALIAS = 'lisk_v3_dex_adapter';
 
@@ -56,7 +57,7 @@ class LiskV3DEXAdapter {
     getOutboundTransactions = async ({params: {walletAddress, fromTimestamp, limit, order}}) => {
         try {
             const transactions = await this.liskServiceRepo.getOutboundTransactions(walletAddress, fromTimestamp, limit, order);
-            return transactions;
+            return transactions.map(transactionMapper);
         } catch (err) {
             if (httpClient.notFound(err)) {
                 return []
@@ -68,7 +69,7 @@ class LiskV3DEXAdapter {
     getInboundTransactionsFromBlock = async ({params: {walletAddress, blockId}}) => {
         try {
             const transactions = await this.liskServiceRepo.getInboundTransactionsFromBlock(walletAddress, blockId);
-            return transactions;
+            return transactions.map(transactionMapper);
         } catch (err) {
             if (httpClient.notFound(err)) {
                 return []
@@ -80,7 +81,7 @@ class LiskV3DEXAdapter {
     getOutboundTransactionsFromBlock = async ({params: {walletAddress, blockId}}) => {
         try {
             const transactions = await this.liskServiceRepo.getOutboundTransactionsFromBlock(walletAddress, blockId);
-            return transactions;
+            return transactions.map(transactionMapper);
         } catch (err) {
             if (httpClient.notFound(err)) {
                 return []
@@ -93,7 +94,7 @@ class LiskV3DEXAdapter {
         try {
             const block = await this.liskServiceRepo.getLastBlockBelowTimestamp(timestamp);
             if (block) {
-                return block;
+                return blockMapper(block);
             }
             throw new InvalidActionError(blockDidNotExistError, `Error getting block below timestamp ${timestamp}`);
         } catch (err) {
@@ -122,7 +123,7 @@ class LiskV3DEXAdapter {
     getBlocksBetweenHeights = async ({params: {fromHeight, toHeight, limit}}) => {
         try {
             const blocks = await this.liskServiceRepo.getBlocksBetweenHeight(fromHeight, toHeight, limit);
-            return blocks;
+            return blocks.map(blockMapper);
         } catch (err) {
             if (httpClient.notFound(err)) {
                 return []
@@ -135,7 +136,7 @@ class LiskV3DEXAdapter {
         try {
             const block = await this.liskServiceRepo.getBlockAtHeight(height);
             if (block) {
-                return block;
+                return blockMapper(block);
             }
             throw new InvalidActionError(blockDidNotExistError, `Error getting block at height ${height}`);
         } catch (err) {
