@@ -1,11 +1,13 @@
-const transactionMapper = ({id, asset : {amount, recipient, data}, sender, block : {timestamp}}) => {
+const transactionMapper = ({id, asset : {amount, recipient, data}, sender, block : {timestamp}, signatures = []}) => {
     return {
         id,
         message: data,
         amount,
         timestamp,
         senderAddress : sender.address,
-        recipientAddress : recipient.address
+        recipientAddress : recipient.address,
+        // todo - need to check if signature is a signerAddress
+        signatures: signatures.map(address => ({signerAddress: address}))
     }
 }
 
