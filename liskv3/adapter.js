@@ -2,6 +2,7 @@
 
 const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistError, accountWasNotMultisigError, accountDidNotExistError, transactionBroadcastError} = require('./errors');
 const LiskServiceRepository = require('../lisk-service/repository');
+const httpClient = require('../lisk-service/client')
 const LiskWSClient = require('./client')
 const packageJSON = require('../package.json');
 const DEFAULT_MODULE_ALIAS = 'lisk_v3_dex_adapter';
@@ -16,7 +17,6 @@ class LiskV3DEXAdapter {
     }
 
     isMultiSigAccount = (account) => account.summary.isMultisignature;
-
     getMultisigWalletMembers = async ({params: {walletAddress}}) => {
         try {
             const account = await this.liskServiceRepo.getAccountByAddress(walletAddress);
@@ -58,7 +58,7 @@ class LiskV3DEXAdapter {
             const transactions = await this.liskServiceRepo.getOutboundTransactions(walletAddress, fromTimestamp, limit, order);
             return transactions;
         } catch (err) {
-            if (err.response.status === 404) {
+            if (httpClient.notFound(err)) {
                 return []
             }
             throw new InvalidActionError(accountDidNotExistError, `Error getting outbound transactions with account address ${walletAddress}`, err);
@@ -70,7 +70,7 @@ class LiskV3DEXAdapter {
             const transactions = await this.liskServiceRepo.getInboundTransactionsFromBlock(walletAddress, blockId);
             return transactions;
         } catch (err) {
-            if (err.response.status === 404) {
+            if (httpClient.notFound(err)) {
                 return []
             }
             throw new InvalidActionError(accountDidNotExistError, `Error getting inbound transactions with account address ${walletAddress}`, err);
@@ -82,7 +82,7 @@ class LiskV3DEXAdapter {
             const transactions = await this.liskServiceRepo.getOutboundTransactionsFromBlock(walletAddress, blockId);
             return transactions;
         } catch (err) {
-            if (err.response.status === 404) {
+            if (httpClient.notFound(err)) {
                 return []
             }
             throw new InvalidActionError(accountDidNotExistError, `Error getting outbound transactions with account address ${walletAddress}`, err);
@@ -124,7 +124,7 @@ class LiskV3DEXAdapter {
             const blocks = await this.liskServiceRepo.getBlocksBetweenHeight(fromHeight, toHeight, limit);
             return blocks;
         } catch (err) {
-            if (err.response.status === 404) {
+            if (httpClient.notFound(err)) {
                 return []
             }
             throw new InvalidActionError(blockDidNotExistError, `Error getting block between heights ${fromHeight} - ${toHeight}`, err);

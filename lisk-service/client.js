@@ -27,9 +27,9 @@ class HttpClient {
         return null;
     };
 
-    canFallback = (err) => {
-        return !(err && err.response && err.response.status < 500);
-    };
+    static notFound = (err) => err && err.response && err.response.status === 404
+
+    canFallback = (err) => !(err && err.response && err.response.status < 500);
 
     get = async (path, params) => {
         const getReqFn = HttpClient.HttpGetRequestFn(path, params);
