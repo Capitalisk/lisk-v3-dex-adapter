@@ -1,8 +1,7 @@
 class InvalidActionError extends Error {
-    static InvalidActionError = 'InvalidActionError'
     constructor(name, message, cause) {
         super(message);
-        this.type = InvalidActionError;
+        this.type = 'InvalidActionError';
         this.name = name;
         this.cause = cause;
     }

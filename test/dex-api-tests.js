@@ -15,7 +15,7 @@ describe('DEX API tests', async () => {
 
   before(async () => {
     adapterModule = new LiskV3DEXAdapterModule({
-      config: {},
+      config: { env: 'test'},
       logger: {
         info: () => {},
         // info: (...args) => console.info.apply(console, args),
@@ -26,33 +26,33 @@ describe('DEX API tests', async () => {
       }
     });
 
-    this.channel = new Channel({
-      modules: {
-        app: new AppModuleMock()
-      }
-    });
-
-    await adapterModule.load(this.channel);
+    // this.channel = new Channel({
+    //   modules: {
+    //     app: new AppModuleMock()
+    //   }
+    // });
+    //
+    // await adapterModule.load(this.channel);
   });
 
   after(async () => {
     await adapterModule.unload();
   });
 
-  describe('module state', async () => {
+  describe('module state', () => {
 
-    it('should expose an info property', async () => {
+    it('should expose an info property', () => {
       let moduleInfo = adapterModule.info;
       assert(moduleInfo.author);
       assert(moduleInfo.version);
       assert(moduleInfo.name);
     });
 
-    it('should expose an alias property', async () => {
+    it('should expose an alias property', () => {
       assert(adapterModule.alias);
     });
 
-    it('should expose an events property', async () => {
+    it('should expose an events property', () => {
       let events = adapterModule.events;
       assert(events.includes('bootstrap'));
       assert(events.includes('chainChanges'));
@@ -60,24 +60,21 @@ describe('DEX API tests', async () => {
 
   });
 
-  describe.skip('module actions', async () => {
+  describe('module actions', async () => {
 
-    let memberAddessList;
     let memberAccounts = [];
-    let multisigAccount;
     let blockList = [];
-
-    let multisigMemberAPassphrase;
-    let multisigMemberBPassphrase;
 
     describe('getMultisigWalletMembers action', async () => {
 
       it('should return an array of member addresses', async () => {
         let walletMembers = await adapterModule.actions.getMultisigWalletMembers.handler({
           params: {
-            walletAddress: multisigAccount.address
+            walletAddress: 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4'
           }
         });
+        const memberAddessList = ['lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4', 'lskmpnnwk2dcrywz6egczeducykso8ykyj9ppdsrh']
+
         // Must be an array of wallet address strings.
         assert.equal(JSON.stringify(walletMembers.sort()), JSON.stringify(memberAddessList.sort()));
       });
@@ -105,7 +102,7 @@ describe('DEX API tests', async () => {
       it('should return the number of required signatures', async () => {
         let requiredSignatureCount = await adapterModule.actions.getMinMultisigRequiredSignatures.handler({
           params: {
-            walletAddress: multisigAccount.address
+            walletAddress: 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4'
           }
         });
         assert.equal(requiredSignatureCount, 2);
@@ -124,7 +121,7 @@ describe('DEX API tests', async () => {
         }
         assert.notEqual(caughtError, null);
         assert.equal(caughtError.type, 'InvalidActionError');
-        assert.equal(caughtError.name, 'AccountDidNotExistError');
+        assert.equal(caughtError.name, 'MultisigAccountDidNotExistError');
       });
 
       it('should throw an AccountWasNotMultisigError if the account is not a multisig wallet', async () => {
@@ -132,7 +129,7 @@ describe('DEX API tests', async () => {
         try {
           await adapterModule.actions.getMinMultisigRequiredSignatures.handler({
             params: {
-              walletAddress: 'ldpos5f0bc55450657f7fcb188e90122f7e4cee894199'
+              walletAddress: 'lskx5t5nc997jczxn6s7ggoqtwcdbgs3u5r8q5b42'
             }
           });
         } catch (error) {
