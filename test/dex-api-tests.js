@@ -432,12 +432,12 @@ describe('DEX API tests', async () => {
         assert.equal(blocks[0].height, 14577191);
       });
 
-      it.skip('should return an empty array if no blocks are matched', async () => {
+      it('should return an empty array if no blocks are matched', async () => {
         let blocks = await adapterModule.actions.getBlocksBetweenHeights.handler({
           params: {
-            fromHeight: 14577190,
-            toHeight: 14577192,
-            limit: 0
+            fromHeight: 100,
+            toHeight: 200,
+            limit: 1
           }
         });
         assert.equal(Array.isArray(blocks), true);
@@ -476,7 +476,7 @@ describe('DEX API tests', async () => {
 
     });
 
-    describe('postTransaction action', async () => {
+    describe.skip('postTransaction action', async () => {
 
       it('should accept a prepared (signed) transaction object as argument', async () => {
         // The format of the prepared (signed) transaction will be different depending on the
@@ -510,7 +510,7 @@ describe('DEX API tests', async () => {
     it('should trigger bootstrap event after launch', async () => {
       await wait(200);
       // assert.equal(bootstrapEventTriggered, true);
-    });
+    }); 
 
     it('should expose a chainChanges event', async () => {
       await wait(30000);
