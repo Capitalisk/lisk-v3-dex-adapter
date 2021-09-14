@@ -1,6 +1,6 @@
 const {createWSClient} = require('@liskhq/lisk-api-client');
 
-const {wait} = require('./utils');
+const {wait} = require('../common/utils');
 
 class LiskNodeWsClient {
 

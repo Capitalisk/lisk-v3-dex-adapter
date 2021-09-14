@@ -1,4 +1,4 @@
-const {firstOrNull} = require('../liskv3/utils');
+const {firstOrNull} = require('../common/utils');
 
 const HttpClient = require('./client');
 const metaStore = require('./meta');
