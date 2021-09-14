@@ -38,6 +38,10 @@ const sort = (arr, key) => arr.sort((o1, o2) => {
     return o1[key].localeCompare(o2[key]);
 });
 
+const toHexBuffer = (data) => Buffer.from(data, 'hex')
+
+const bufferToString = (hexBuffer) => hexBuffer.toString('hex')
+
 const wait = (duration) => new Promise(resolve => setTimeout(resolve, duration))
 
-module.exports = {isNullOrUndefinedOrEmpty, firstOrDefault, isLocal, isNullOrUndefined, run, sort, arrOrFirstOrNull, isEmpty, firstOrNull,arrOrDefault, wait};
+module.exports = {isNullOrUndefinedOrEmpty, firstOrDefault, isLocal, isNullOrUndefined, run, sort, arrOrFirstOrNull, isEmpty, firstOrNull,arrOrDefault, wait, toHexBuffer, bufferToString};

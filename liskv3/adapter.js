@@ -201,8 +201,8 @@ class LiskV3DEXAdapter {
     }
 
     async unload() {
+        await this.liskWsClient.disconnect()
     }
-
 
     get dependencies() {
         return ['app'];
@@ -237,6 +237,13 @@ class LiskV3DEXAdapter {
             getBlockAtHeight : {handler: this.getBlockAtHeight},
             postTransaction : {handler: this.postTransaction}
         };
+    }
+
+    _getSignedTransactionBytes = async (transactionId) => {
+        const wsClient = await this.liskWsClient.getWsClient()
+        const transaction = await wsClient.transaction.get(transactionId)
+        const unsignedTransaction = {...transaction, signatures: []}
+        return wsClient.transaction.encode(unsignedTransaction)
     }
 }
 

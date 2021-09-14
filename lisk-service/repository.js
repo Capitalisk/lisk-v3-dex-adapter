@@ -8,7 +8,7 @@ class LiskServiceRepository {
     static defaultTestNetUrl = 'https://testnet-service.lisk.com';
     static defaultMainNetUrl = 'https://service.lisk.com';
 
-    constructor({config, logger}) {
+    constructor({config = {}, logger = console}) {
         this.liskServiceClient = new HttpClient({config: this.getDefaultHttpClientConfig(config), logger});
     }
 

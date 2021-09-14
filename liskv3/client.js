@@ -83,6 +83,12 @@ class LiskNodeWsClient {
         }
         throw wsClientErr;
     };
+
+    disconnect = async () => {
+        if (this.wsClient) {
+            await this.wsClient.disconnect();
+        }
+    }
 }
 
 module.exports = LiskNodeWsClient;
