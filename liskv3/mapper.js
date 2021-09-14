@@ -10,8 +10,6 @@ const transactionMapper = ({id, asset : {amount, recipient, data}, sender, block
     }
 }
 
-const blockMapper = ({id, height, timestamp}) => {
-    return {id, height, timestamp}
-}
+const blockMapper = ({id, height, timestamp}) => ({id, height, timestamp})
 
 module.exports = {transactionMapper, blockMapper}

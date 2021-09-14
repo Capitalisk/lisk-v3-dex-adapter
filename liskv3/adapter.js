@@ -2,6 +2,7 @@
 
 const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistError, accountWasNotMultisigError, accountDidNotExistError, transactionBroadcastError} = require('./errors');
 const LiskServiceRepository = require('../lisk-service/repository');
+const {getMatchingKeySignatures} = require('../common/signature')
 const httpClient = require('../lisk-service/client')
 const LiskWSClient = require('./client')
 const {blockMapper, transactionMapper} = require('./mapper')
@@ -244,6 +245,17 @@ class LiskV3DEXAdapter {
         const transaction = await wsClient.transaction.get(transactionId)
         const unsignedTransaction = {...transaction, signatures: []}
         return wsClient.transaction.encode(unsignedTransaction)
+    }
+
+    _signatureMapper = async ({id, sender, signatures}) => {
+        if (signatures.length > 0) {
+            const account = await this.liskServiceRepo.getAccountByAddress(sender.address)
+            const {mandatoryKeys, optionalKeys} = account.keys
+            const publicKeys = [...mandatoryKeys, ...optionalKeys, sender.publicKey]
+            const transactionBytes = await this._getSignedTransactionBytes(id)
+            const matchingKeySignatures = getMatchingKeySignatures(publicKeys, signatures, transactionBytes)
+            console.log(matchingKeySignatures)
+        }
     }
 }
 

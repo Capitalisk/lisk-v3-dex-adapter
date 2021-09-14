@@ -1,8 +1,8 @@
-import { verifyData } from '@liskhq/lisk-cryptography';
+const { verifyData } = require('@liskhq/lisk-cryptography');
 const {toHexBuffer} = require('./utils')
 const {TAG_TRANSACTION, TESTNET_NETWORK_IDENTIFIER} = require('./constants')
 
-export const getMatchingKeySignatures = (
+const getMatchingKeySignatures = (
     publicKeys,
     signatures,
     transactionBytes,
@@ -20,7 +20,17 @@ export const getMatchingKeySignatures = (
     return keySignaturePair
 };
 
-export const validateSignature = (
+const tagMessage = (tag,
+    networkIdentifier,
+    message
+) =>
+    Buffer.concat([
+        Buffer.from(tag, 'utf8'),
+        networkIdentifier,
+        typeof message === 'string' ? Buffer.from(message, 'utf8') : message,
+    ]);
+
+const validateSignature = (
     publicKey,
     signature,
     transactionBytes,
@@ -31,3 +41,5 @@ export const validateSignature = (
     const bufferedSignature = toHexBuffer(signature)
     return verifyData(tag, networkIdentifier, transactionBytes, bufferedSignature, bufferedPublicKey);
 };
+
+module.exports = {getMatchingKeySignatures, validateSignature}
