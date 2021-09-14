@@ -30,10 +30,10 @@ async function main() {
     //     walletAddress: 'lskhszrdpk5yzngd885cvsvsuxcko7trsvdpn2moz'
     //     }})
     // console.log(transactions)
-    await adapter.subscribeToBlockChange((type, block) => {
-        console.log(`type ${type} : block ${block}`)
-    })
-    await sleep(10000000)
+    // await adapter.subscribeToBlockChange((type, block) => {
+    //     console.log(`type ${type} : block ${block}`)
+    // })
+    // await sleep(10000000)
 }
 
 function sleep(ms) {

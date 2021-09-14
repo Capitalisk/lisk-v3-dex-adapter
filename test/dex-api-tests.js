@@ -62,9 +62,6 @@ describe('DEX API tests', async () => {
 
   describe('module actions', async () => {
 
-    let memberAccounts = [];
-    let blockList = [];
-
     describe('getMultisigWalletMembers action', async () => {
 
       it('should return an array of member addresses', async () => {
@@ -172,41 +169,43 @@ describe('DEX API tests', async () => {
         }
       });
 
-      it.skip('should return transactions which are more recent than fromTimestamp by default', async () => {
+      it('should return transactions which are greater than fromTimestamp by default in asc order', async () => {
         let transactions = await adapterModule.actions.getOutboundTransactions.handler({
           params: {
-            walletAddress: clientForger.walletAddress,
-            fromTimestamp: 15000,
+            walletAddress: senderWalletAddress,
+            fromTimestamp: 0,
             limit: 100
           }
         });
+
         assert.equal(Array.isArray(transactions), true);
         assert.equal(transactions.length, 3);
-        assert.equal(transactions[0].senderAddress, clientForger.walletAddress);
-        assert.equal(transactions[0].message, '1');
-        assert.equal(transactions[1].senderAddress, clientForger.walletAddress);
-        assert.equal(transactions[1].message, '2');
-        assert.equal(transactions[2].senderAddress, clientForger.walletAddress);
-        assert.equal(transactions[2].message, '3');
+        assert.equal(transactions[0].senderAddress, senderWalletAddress);
+        assert.equal(transactions[0].timestamp, 1625259050);
+        assert.equal(transactions[1].senderAddress, senderWalletAddress);
+        assert.equal(transactions[1].timestamp, 1626260620);
+        assert.equal(transactions[2].senderAddress, senderWalletAddress);
+        assert.equal(transactions[2].timestamp, 1630162470);
       });
 
-      it.skip('should return transactions which are more recent than fromTimestamp when order is desc', async () => {
+      it('should return transactions are lower than than fromTimestamp when order is desc', async () => {
         let transactions = await adapterModule.actions.getOutboundTransactions.handler({
           params: {
-            walletAddress: clientForger.walletAddress,
-            fromTimestamp: 40000,
+            walletAddress: senderWalletAddress,
+            fromTimestamp: 1630162470,
             limit: 100,
             order: 'desc'
           }
         });
+
         assert.equal(Array.isArray(transactions), true);
         assert.equal(transactions.length, 3);
-        assert.equal(transactions[0].senderAddress, clientForger.walletAddress);
-        assert.equal(transactions[0].message, '2');
-        assert.equal(transactions[1].senderAddress, clientForger.walletAddress);
-        assert.equal(transactions[1].message, '1');
-        assert.equal(transactions[2].senderAddress, clientForger.walletAddress);
-        assert.equal(transactions[2].message, '0');
+        assert.equal(transactions[0].senderAddress, senderWalletAddress);
+        assert.equal(transactions[0].timestamp, 1630162470);
+        assert.equal(transactions[1].senderAddress, senderWalletAddress);
+        assert.equal(transactions[1].timestamp, 1626260620);
+        assert.equal(transactions[2].senderAddress, senderWalletAddress);
+        assert.equal(transactions[2].timestamp, 1625259050);
       });
 
       it('should limit the number of transactions based on the specified limit', async () => {
@@ -240,11 +239,11 @@ describe('DEX API tests', async () => {
     describe('getInboundTransactionsFromBlock action', async () => {
 
       it('should return an array of transactions sent to the specified walletAddress', async () => {
-        let recipientAddress = 'ldpos5f0bc55450657f7fcb188e90122f7e4cee894199';
+        let recipientAddress = 'lskhoeyvtvoczuzgnompgeynoar2fyoqdq9hh2zjm';
         let transactions = await adapterModule.actions.getInboundTransactionsFromBlock.handler({
           params: {
             walletAddress: recipientAddress,
-            blockId: blockList[0].id
+            blockId: "cab89ebf649d94f75147a6720da5846db26cb676cac00122df1a278ab871d4f8"
           }
         });
         assert.equal(Array.isArray(transactions), true);
@@ -260,11 +259,11 @@ describe('DEX API tests', async () => {
         assert.equal(typeof txn.recipientAddress, 'string');
 
         assert.equal(transactions[0].recipientAddress, recipientAddress);
-        assert.equal(transactions[0].message, '1');
+        assert.equal(transactions[0].message, 'Payout from ShineKami testnet pool');
       });
 
       it('should return an empty array if no transactions match the specified blockId', async () => {
-        let recipientAddress = 'ldpos5f0bc55450657f7fcb188e90122f7e4cee894199';
+        let recipientAddress = 'lskhoeyvtvoczuzgnompgeynoar2fyoqdq9hh2zjm';
         let transactions = await adapterModule.actions.getInboundTransactionsFromBlock.handler({
           params: {
             walletAddress: recipientAddress,
@@ -279,14 +278,13 @@ describe('DEX API tests', async () => {
         let recipientAddress = 'ldpos5f0bc55450657f7fcb188e90122f7e4cee894199';
         let transactions = await adapterModule.actions.getInboundTransactionsFromBlock.handler({
           params: {
-            walletAddress: 'ldpos6312b77c6ca4233141835eb37f8f33a45f18d50f',
-            blockId: blockList[0].id
+            walletAddress: 'lsksag7kga5pcsppyfw3zv48cy68p79nkmpdk2qo3',
+            blockId: 'cab89ebf649d94f75147a6720da5846db26cb676cac00122df1a278ab871d4f8'
           }
         });
         assert.equal(Array.isArray(transactions), true);
         assert.equal(transactions.length, 0);
       });
-
     });
 
     describe('getOutboundTransactionsFromBlock action', async () => {
@@ -294,12 +292,12 @@ describe('DEX API tests', async () => {
       it('should return an array of transactions sent to the specified walletAddress', async () => {
         let transactions = await adapterModule.actions.getOutboundTransactionsFromBlock.handler({
           params: {
-            walletAddress: clientForger.walletAddress,
-            blockId: blockList[0].id
+            walletAddress: 'lsksag7kga5pcsppyfw3zv48cy68p79nkmpdk2qo3',
+            blockId: '748f052b313e2c84595e2e9735550b499162cbbf5ab13a065f10424f4ffa74ee'
           }
         });
         assert.equal(Array.isArray(transactions), true);
-        assert.equal(transactions.length, 2);
+        assert.equal(transactions.length, 1);
 
         for (let txn of transactions) {
           assert.equal(typeof txn.id, 'string');
@@ -311,13 +309,11 @@ describe('DEX API tests', async () => {
           assert.equal(typeof txn.recipientAddress, 'string');
         }
 
-        assert.equal(transactions[0].senderAddress, clientForger.walletAddress);
-        assert.equal(transactions[0].message, '0');
-        assert.equal(transactions[1].senderAddress, clientForger.walletAddress);
-        assert.equal(transactions[1].message, '1');
+        assert.equal(transactions[0].senderAddress, 'lsksag7kga5pcsppyfw3zv48cy68p79nkmpdk2qo3');
+        assert.equal(transactions[0].message, '');
       });
 
-      it('should return transactions with a valid signatures property if transaction is from a multisig wallet', async () => {
+      it.skip('should return transactions with a valid signatures property if transaction is from a multisig wallet', async () => {
         let transactions = await adapterModule.actions.getOutboundTransactionsFromBlock.handler({
           params: {
             walletAddress: clientForger.walletAddress,
@@ -345,7 +341,7 @@ describe('DEX API tests', async () => {
       it('should return an empty array if no transactions match the specified blockId', async () => {
         let transactions = await adapterModule.actions.getOutboundTransactionsFromBlock.handler({
           params: {
-            walletAddress: clientForger.walletAddress,
+            walletAddress: 'lsksag7kga5pcsppyfw3zv48cy68p79nkmpdk2qo3',
             blockId: '31d9d53d4912be178c3bd5421a59b2a32f9560ca'
           }
         });
@@ -356,14 +352,13 @@ describe('DEX API tests', async () => {
       it('should return an empty array if no transactions match the specified walletAddress', async () => {
         let transactions = await adapterModule.actions.getOutboundTransactionsFromBlock.handler({
           params: {
-            walletAddress: 'ldpos6312b77c6ca4233141835eb37f8f33a45f18d50f',
-            blockId: blockList[0].id
+            walletAddress: 'lskhoeyvtvoczuzgnompgeynoar2fyoqdq9hh2zjm',
+            blockId: '748f052b313e2c84595e2e9735550b499162cbbf5ab13a065f10424f4ffa74ee'
           }
         });
         assert.equal(Array.isArray(transactions), true);
         assert.equal(transactions.length, 0);
       });
-
     });
 
     describe('getLastBlockAtTimestamp action', async () => {
@@ -371,11 +366,12 @@ describe('DEX API tests', async () => {
       it('should return the highest block which is below the specified timestamp', async () => {
         let block = await adapterModule.actions.getLastBlockAtTimestamp.handler({
           params: {
-            timestamp: 31000
+            timestamp: 1631600251
           }
         });
         assert.notEqual(block, null);
-        assert.equal(block.height, 1);
+        assert.equal(block.height, 14577194)
+        assert.equal(block.timestamp, 1631600250);
       });
 
       it('should throw a BlockDidNotExistError error if no block can be found before the specified timestamp', async () => {
@@ -383,7 +379,7 @@ describe('DEX API tests', async () => {
         try {
           await adapterModule.actions.getLastBlockAtTimestamp.handler({
             params: {
-              timestamp: 29000
+              timestamp: 100
             }
           });
         } catch (error) {
@@ -400,7 +396,7 @@ describe('DEX API tests', async () => {
 
       it('should return the height of the block as an integer number', async () => {
         let height = await adapterModule.actions.getMaxBlockHeight.handler();
-        assert.equal(height, 3);
+        assert(Number.isInteger(height));
       });
 
     });
@@ -410,44 +406,43 @@ describe('DEX API tests', async () => {
       it('should return blocks whose height is greater than fromHeight and less than or equal to toHeight', async () => {
         let blocks = await adapterModule.actions.getBlocksBetweenHeights.handler({
           params: {
-            fromHeight: 1,
-            toHeight: 2,
+            fromHeight: 14577190,
+            toHeight: 14577191,
             limit: 100
           }
         });
         assert.equal(Array.isArray(blocks), true);
-        assert.equal(blocks.length, 1);
+        assert.equal(blocks.length, 2);
         let block = blocks[0];
         assert.equal(typeof block.id, 'string');
         assert.equal(Number.isInteger(block.timestamp), true);
-        assert.equal(block.height, 2);
+        assert.equal(block.height, 14577191);
       });
 
       it('should return blocks whose height is greater than fromHeight and less than or equal to toHeight', async () => {
         let blocks = await adapterModule.actions.getBlocksBetweenHeights.handler({
           params: {
-            fromHeight: 0,
-            toHeight: 2,
+            fromHeight: 14577190,
+            toHeight: 14577191,
             limit: 1
           }
         });
         assert.equal(Array.isArray(blocks), true);
         assert.equal(blocks.length, 1);
-        assert.equal(blocks[0].height, 1);
+        assert.equal(blocks[0].height, 14577191);
       });
 
-      it('should return an empty array if no blocks are matched', async () => {
+      it.skip('should return an empty array if no blocks are matched', async () => {
         let blocks = await adapterModule.actions.getBlocksBetweenHeights.handler({
           params: {
-            fromHeight: 9,
-            toHeight: 10,
-            limit: 10
+            fromHeight: 14577190,
+            toHeight: 14577192,
+            limit: 0
           }
         });
         assert.equal(Array.isArray(blocks), true);
         assert.equal(blocks.length, 0);
       });
-
     });
 
     describe('getBlockAtHeight action', async () => {
@@ -455,11 +450,11 @@ describe('DEX API tests', async () => {
       it('should expose a getBlockAtHeight action', async () => {
         let block = await adapterModule.actions.getBlockAtHeight.handler({
           params: {
-            height: 2
+            height: 14577653
           }
         });
         assert.notEqual(block, null);
-        assert.equal(block.height, 2);
+        assert.equal(block.height, 14577653);
         assert.equal(Number.isInteger(block.timestamp), true);
       });
 

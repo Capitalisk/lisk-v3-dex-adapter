@@ -72,10 +72,10 @@ class LiskServiceRepository {
         };
         if (order === 'asc') {
             transactionFilterParams[metaStore.Transactions.filter.sort] = metaStore.Transactions.sortBy.timestampAsc;
-            transactionFilterParams[metaStore.Transactions.filter.timestamp]: `${fromTimestamp}:`
+            transactionFilterParams[metaStore.Transactions.filter.timestamp] = `${fromTimestamp}:`
         } else {
             transactionFilterParams[metaStore.Transactions.filter.sort] = metaStore.Transactions.sortBy.timestampDesc;
-            transactionFilterParams[metaStore.Transactions.filter.timestamp]: `0:${fromTimestamp}`
+            transactionFilterParams[metaStore.Transactions.filter.timestamp] = `0:${fromTimestamp}`
         }
         return await this.getTransactions(transactionFilterParams);
     };

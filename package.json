@@ -4,7 +4,7 @@
   "description": "DEX adapter module for lisk-core v3 blockchain.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --reporter spec --timeout 3000 --slow 3000",
+    "test": "mocha --reporter spec --timeout 5000 --slow 3000",
     "start": "node main.js"
   },
   "repository": {
