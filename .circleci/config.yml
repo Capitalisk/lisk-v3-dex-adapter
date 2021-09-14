@@ -1,0 +1,33 @@
+version: 2.1
+jobs:
+  build-test:
+    working_directory: ~/repo
+    machine: true
+    steps:
+      - checkout
+      - run:
+          name: Install node@v12.18.2
+          command: |
+            set +e
+            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
+            export NVM_DIR="/opt/circleci/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install v12.18.2
+            nvm alias default v12.18.2
+            rm -rf ~./node-gyp
+            node -v
+      - run:
+          name: Run tests
+          command: |
+            set +e
+            export NVM_DIR="/opt/circleci/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+            nvm use 12.18.2
+            npm install
+            npm run test
+
+workflows:
+  test-and-deploy:
+    jobs:
+      - build-test
