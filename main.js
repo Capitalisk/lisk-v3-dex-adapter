@@ -30,10 +30,15 @@ async function main() {
     //     walletAddress: 'lskhszrdpk5yzngd885cvsvsuxcko7trsvdpn2moz'
     //     }})
     // console.log(transactions)
-    // await adapter.subscribeToBlockChange((type, block) => {
-    //     console.log(`type ${type} : block ${block}`)
-    // })
-    // await sleep(10000000)
+    const wsClient = await adapter.liskWsClient.getWsClient()
+    const transaction = await wsClient.transaction.get('22abf94935943a3e3cd7b5cd59f521b508c2e7b58e1585d34c129dd1cf7ec4ff')
+    const unsignedTransaction = {...transaction, signatures: []}
+    const transactionBytes = wsClient.transaction.encode(unsignedTransaction)
+    const transactionHex = transactionBytes.toString('hex')
+    await adapter.subscribeToBlockChange(wsClient, (type, block) => {
+        console.log(`type ${type} : block ${JSON.stringify(block)}`)
+    })
+    await sleep(10000000)
 }
 
 function sleep(ms) {

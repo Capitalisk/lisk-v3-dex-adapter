@@ -156,8 +156,7 @@ class LiskV3DEXAdapter {
         }
     };
 
-    subscribeToBlockChange = async(onBlockChangedEvent) => {
-        const wsClient = await this.liskWsClient.getWsClient()
+    subscribeToBlockChange = async(wsClient, onBlockChangedEvent) => {
         const decodedBlock = (data) => wsClient.block.decode(Buffer.from(data.block, 'hex'));
         wsClient.subscribe('app:block:new', async data => {
             try {
@@ -186,7 +185,8 @@ class LiskV3DEXAdapter {
         });
 
         await channel.publish(`${this.alias}:${this.MODULE_BOOTSTRAP_EVENT}`);
-        await this.subscribeToBlockChange(async (eventType, block) => {
+        const wsClient = await this.liskWsClient.getWsClient()
+        await this.subscribeToBlockChange(wsClient, async (eventType, block) => {
             const eventPayload = {
                 data : {
                     type : eventType,
