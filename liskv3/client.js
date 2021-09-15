@@ -62,7 +62,8 @@ class LiskNodeWsClient {
 
     getWsClient = async () => {
         let wsClientErr = null;
-        for (let retry = 0 ; retry < LiskNodeWsClient.MAX_RETRY ; retry++) {
+        this.canReconnect = true
+        for (let retry = 0 ; retry < LiskNodeWsClient && this.canReconnect; retry++) {
             try {
                 this.logger.info(`Trying node WS primary host ${this.liskNodeWsHost}`);
                 const nodeWsClient = await this.instantiateClient(this.liskNodeWsHost);
@@ -87,6 +88,7 @@ class LiskNodeWsClient {
     disconnect = async () => {
         if (this.wsClient) {
             await this.wsClient.disconnect();
+            this.canReconnect = false
         }
     }
 }
