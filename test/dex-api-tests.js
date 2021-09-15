@@ -148,7 +148,7 @@ describe('DEX API tests', async () => {
           params: {
             walletAddress: senderWalletAddress,
             fromTimestamp: 0,
-            limit: 100
+            limit: 3,
           }
         });
         assert(Array.isArray(transactions));
@@ -174,7 +174,7 @@ describe('DEX API tests', async () => {
           params: {
             walletAddress: senderWalletAddress,
             fromTimestamp: 0,
-            limit: 100
+            limit: 3
           }
         });
 
@@ -193,7 +193,7 @@ describe('DEX API tests', async () => {
           params: {
             walletAddress: senderWalletAddress,
             fromTimestamp: 1630162470,
-            limit: 100,
+            limit: 3,
             order: 'desc'
           }
         });

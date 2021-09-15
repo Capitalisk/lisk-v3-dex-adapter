@@ -9,26 +9,16 @@ const getMatchingKeySignatures = (
     networkIdentifier = TESTNET_NETWORK_IDENTIFIER,
     tag = TAG_TRANSACTION,
 ) => {
-    const keySignaturePair = {}
+    const keySignaturePair = []
     for (const publicKey of publicKeys) {
         for (const signature of signatures) {
             if (validateSignature(publicKey, signature, transactionBytes, networkIdentifier, tag)) {
-                keySignaturePair[publicKey] = signature
+                keySignaturePair.push({publicKey, signature})
             }
         }
     }
     return keySignaturePair
 };
-
-const tagMessage = (tag,
-    networkIdentifier,
-    message
-) =>
-    Buffer.concat([
-        Buffer.from(tag, 'utf8'),
-        networkIdentifier,
-        typeof message === 'string' ? Buffer.from(message, 'utf8') : message,
-    ]);
 
 const validateSignature = (
     publicKey,
@@ -37,9 +27,8 @@ const validateSignature = (
     networkIdentifier = TESTNET_NETWORK_IDENTIFIER,
     tag = TAG_TRANSACTION,
 )  => {
-    const bufferedPublicKey = toHexBuffer(publicKey)
-    const bufferedSignature = toHexBuffer(signature)
-    return verifyData(tag, networkIdentifier, transactionBytes, bufferedSignature, bufferedPublicKey);
+    const transactionWithNetworkIdentifierBytes = Buffer.concat([networkIdentifier, transactionBytes])
+    return verifyData(transactionWithNetworkIdentifierBytes, toHexBuffer(signature), toHexBuffer(publicKey));
 };
 
 module.exports = {getMatchingKeySignatures, validateSignature}

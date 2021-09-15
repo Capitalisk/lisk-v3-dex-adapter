@@ -2,20 +2,55 @@
 
 const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistError, accountWasNotMultisigError, accountDidNotExistError, transactionBroadcastError} = require('./errors');
 const LiskServiceRepository = require('../lisk-service/repository');
-const {getMatchingKeySignatures} = require('../common/signature')
-const httpClient = require('../lisk-service/client')
-const LiskWSClient = require('./client')
-const {blockMapper, transactionMapper} = require('./mapper')
+const {getMatchingKeySignatures} = require('../common/signature');
+const httpClient = require('../lisk-service/client');
+const LiskWSClient = require('./client');
+const {blockMapper, transactionMapper} = require('./mapper');
 const packageJSON = require('../package.json');
 const DEFAULT_MODULE_ALIAS = 'lisk_v3_dex_adapter';
 
 class LiskV3DEXAdapter {
 
+    MODULE_BOOTSTRAP_EVENT = 'bootstrap';
+    MODULE_CHAIN_STATE_CHANGES_EVENT = 'chainChanges';
+
     constructor({alias, config = {}, logger = console} = {config: {}, logger: console}) {
         this.alias = alias || DEFAULT_MODULE_ALIAS;
         this.logger = logger;
         this.liskServiceRepo = new LiskServiceRepository({config, logger});
-        this.liskWsClient = new LiskWSClient({config, logger})
+        this.liskWsClient = new LiskWSClient({config, logger});
+    }
+
+    get dependencies() {
+        return ['app'];
+    }
+
+    get info() {
+        return {
+            author: packageJSON.author,
+            version: packageJSON.version,
+            name: packageJSON.name,
+        };
+    }
+
+    get events() {
+        return [this.MODULE_BOOTSTRAP_EVENT, this.MODULE_CHAIN_STATE_CHANGES_EVENT];
+    }
+
+    get actions() {
+        return {
+            getStatus: {handler: () => ({version: packageJSON.version})},
+            getMultisigWalletMembers: {handler: this.getMultisigWalletMembers},
+            getMinMultisigRequiredSignatures: {handler: this.getMinMultisigRequiredSignatures},
+            getOutboundTransactions: {handler: this.getOutboundTransactions},
+            getInboundTransactionsFromBlock: {handler: this.getInboundTransactionsFromBlock},
+            getOutboundTransactionsFromBlock: {handler: this.getOutboundTransactionsFromBlock},
+            getLastBlockAtTimestamp: {handler: this.getLastBlockAtTimestamp},
+            getMaxBlockHeight: {handler: this.getMaxBlockHeight},
+            getBlocksBetweenHeights: {handler: this.getBlocksBetweenHeights},
+            getBlockAtHeight: {handler: this.getBlockAtHeight},
+            postTransaction: {handler: this.postTransaction},
+        };
     }
 
     isMultiSigAccount = (account) => account.summary.isMultisignature;
@@ -62,7 +97,7 @@ class LiskV3DEXAdapter {
             return transactions.map(transactionMapper);
         } catch (err) {
             if (httpClient.notFound(err)) {
-                return []
+                return [];
             }
             throw new InvalidActionError(accountDidNotExistError, `Error getting outbound transactions with account address ${walletAddress}`, err);
         }
@@ -74,7 +109,7 @@ class LiskV3DEXAdapter {
             return transactions.map(transactionMapper);
         } catch (err) {
             if (httpClient.notFound(err)) {
-                return []
+                return [];
             }
             throw new InvalidActionError(accountDidNotExistError, `Error getting inbound transactions with account address ${walletAddress}`, err);
         }
@@ -86,7 +121,7 @@ class LiskV3DEXAdapter {
             return transactions.map(transactionMapper);
         } catch (err) {
             if (httpClient.notFound(err)) {
-                return []
+                return [];
             }
             throw new InvalidActionError(accountDidNotExistError, `Error getting outbound transactions with account address ${walletAddress}`, err);
         }
@@ -128,7 +163,7 @@ class LiskV3DEXAdapter {
             return blocks.map(blockMapper);
         } catch (err) {
             if (httpClient.notFound(err)) {
-                return []
+                return [];
             }
             throw new InvalidActionError(blockDidNotExistError, `Error getting block between heights ${fromHeight} - ${toHeight}`, err);
         }
@@ -157,12 +192,12 @@ class LiskV3DEXAdapter {
         }
     };
 
-    subscribeToBlockChange = async(wsClient, onBlockChangedEvent) => {
+    subscribeToBlockChange = async (wsClient, onBlockChangedEvent) => {
         const decodedBlock = (data) => wsClient.block.decode(Buffer.from(data.block, 'hex'));
         wsClient.subscribe('app:block:new', async data => {
             try {
-                const block = decodedBlock(data)
-                await onBlockChangedEvent('addBlock', block)
+                const block = decodedBlock(data);
+                await onBlockChangedEvent('addBlock', block);
             } catch (err) {
                 this.logger.error(`Error while processing the 'app:block:new' event:\n${err.stack}`);
             }
@@ -170,13 +205,13 @@ class LiskV3DEXAdapter {
 
         wsClient.subscribe('app:block:delete', async data => {
             try {
-                const block = decodedBlock(data)
-                await onBlockChangedEvent('removeBlock', block)
+                const block = decodedBlock(data);
+                await onBlockChangedEvent('removeBlock', block);
             } catch (err) {
                 this.logger.error(`Error while processing the 'app:block:delete' event:\n${err.stack}`);
             }
         });
-    }
+    };
 
     async load(channel) {
         this.channel = channel;
@@ -186,77 +221,42 @@ class LiskV3DEXAdapter {
         });
 
         await channel.publish(`${this.alias}:${this.MODULE_BOOTSTRAP_EVENT}`);
-        const wsClient = await this.liskWsClient.getWsClient()
+        const wsClient = await this.liskWsClient.getWsClient();
         await this.subscribeToBlockChange(wsClient, async (eventType, block) => {
             const eventPayload = {
-                data : {
-                    type : eventType,
-                    block : {
+                data: {
+                    type: eventType,
+                    block: {
                         timestamp: block.header.timestamp,
-                        height : block.header.height,
-                    }
-                }
-            }
+                        height: block.header.height,
+                    },
+                },
+            };
             await channel.publish(`${this.alias}:${this.MODULE_CHAIN_STATE_CHANGES_EVENT}`, eventPayload);
-        })
+        });
     }
 
     async unload() {
-        await this.liskWsClient.disconnect()
-    }
-
-    get dependencies() {
-        return ['app'];
-    }
-
-    get info() {
-        return {
-            author: packageJSON.author,
-            version: packageJSON.version,
-            name: packageJSON.name,
-        };
-    }
-
-    MODULE_BOOTSTRAP_EVENT = 'bootstrap'
-    MODULE_CHAIN_STATE_CHANGES_EVENT = 'chainChanges'
-
-    get events() {
-        return [this.MODULE_BOOTSTRAP_EVENT, this.MODULE_CHAIN_STATE_CHANGES_EVENT];
-    }
-
-    get actions() {
-        return {
-            getStatus: {handler: () => ({version: packageJSON.version})},
-            getMultisigWalletMembers : {handler: this.getMultisigWalletMembers},
-            getMinMultisigRequiredSignatures : {handler: this.getMinMultisigRequiredSignatures},
-            getOutboundTransactions : {handler: this.getOutboundTransactions},
-            getInboundTransactionsFromBlock : {handler: this.getInboundTransactionsFromBlock},
-            getOutboundTransactionsFromBlock : {handler: this.getOutboundTransactionsFromBlock},
-            getLastBlockAtTimestamp : {handler: this.getLastBlockAtTimestamp},
-            getMaxBlockHeight : {handler: this.getMaxBlockHeight},
-            getBlocksBetweenHeights : {handler: this.getBlocksBetweenHeights},
-            getBlockAtHeight : {handler: this.getBlockAtHeight},
-            postTransaction : {handler: this.postTransaction}
-        };
+        await this.liskWsClient.disconnect();
     }
 
     _getSignedTransactionBytes = async (transactionId) => {
-        const wsClient = await this.liskWsClient.getWsClient()
-        const transaction = await wsClient.transaction.get(transactionId)
-        const unsignedTransaction = {...transaction, signatures: []}
-        return wsClient.transaction.encode(unsignedTransaction)
-    }
+        const wsClient = await this.liskWsClient.getWsClient();
+        const transaction = await wsClient.transaction.get(transactionId);
+        const unsignedTransaction = {...transaction, signatures: []};
+        return wsClient.transaction.encode(unsignedTransaction);
+    };
 
     _signatureMapper = async ({id, sender, signatures}) => {
         if (signatures.length > 0) {
-            const account = await this.liskServiceRepo.getAccountByAddress(sender.address)
-            const {mandatoryKeys, optionalKeys} = account.keys
-            const publicKeys = [...mandatoryKeys, ...optionalKeys, sender.publicKey]
-            const transactionBytes = await this._getSignedTransactionBytes(id)
-            const matchingKeySignatures = getMatchingKeySignatures(publicKeys, signatures, transactionBytes)
-            console.log(matchingKeySignatures)
+            const account = await this.liskServiceRepo.getAccountByAddress(sender.address);
+            const {mandatoryKeys, optionalKeys} = account.keys;
+            const publicKeys = [...mandatoryKeys, ...optionalKeys, sender.publicKey];
+            const transactionBytes = await this._getSignedTransactionBytes(id);
+            const matchingKeySignatures = getMatchingKeySignatures(publicKeys, signatures, transactionBytes);
+            console.log(matchingKeySignatures);
         }
-    }
+    };
 }
 
 module.exports = LiskV3DEXAdapter;
