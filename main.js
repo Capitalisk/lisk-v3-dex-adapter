@@ -12,7 +12,6 @@ async function main() {
 
     const adapter = new adpater({config: {
         env : 'test',
-        liskWsHostFallbacks : ['x.com', 'y.com'],
     }})
     // const info = await liskRepo.getNetworkStatus()
     // console.log(info)

@@ -15,6 +15,7 @@ class LiskV3DEXAdapter {
 
     MODULE_BOOTSTRAP_EVENT = 'bootstrap';
     MODULE_CHAIN_STATE_CHANGES_EVENT = 'chainChanges';
+    MODULE_LISK_WS_CLOSE_EVENT = 'wsConnClose';
 
     constructor({alias, config = {}, logger = console} = {config: {}, logger: console}) {
         this.alias = alias || DEFAULT_MODULE_ALIAS;
@@ -36,7 +37,7 @@ class LiskV3DEXAdapter {
     }
 
     get events() {
-        return [this.MODULE_BOOTSTRAP_EVENT, this.MODULE_CHAIN_STATE_CHANGES_EVENT];
+        return [this.MODULE_BOOTSTRAP_EVENT, this.MODULE_CHAIN_STATE_CHANGES_EVENT, this.MODULE_LISK_WS_CLOSE_EVENT];
     }
 
     get actions() {
@@ -235,12 +236,22 @@ class LiskV3DEXAdapter {
             };
             await channel.publish(`${this.alias}:${this.MODULE_CHAIN_STATE_CHANGES_EVENT}`, eventPayload);
         }
-        const wsClient = await this.liskWsClient.createWsClient();
+        const wsClient = await this.liskWsClient.createWsClient(true);
         await this.subscribeToBlockChange(wsClient, publishBlockChangeEvent);
 
         // For future reconnects, subscribe to block change
         this.liskWsClient.onConnected = async (wsClient) => {
             await this.subscribeToBlockChange(wsClient, publishBlockChangeEvent);
+        }
+
+        this.liskWsClient.onClosed = async (err) => {
+            const errPayload = {
+                data: {
+                    type: "LiskNodeWsConnectionErr",
+                    err
+                }
+            };
+            await channel.publish(`${this.alias}:${this.MODULE_LISK_WS_CLOSE_EVENT}`, errPayload);
         }
     }
 

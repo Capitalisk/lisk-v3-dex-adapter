@@ -17,6 +17,7 @@ class LiskNodeWsClient {
         this.wsClient = null;
         this.onConnected = async () => {}
         this.onDisconnected = async () => {}
+        this.onClosed = async () => {}
     }
 
     setDefaultConfig = (config) => {
@@ -36,13 +37,15 @@ class LiskNodeWsClient {
                     this.isInstantiating = true;
                     if (this.wsClient) await this.wsClient.disconnect();
                     this.wsClient = await createWSClient(`${nodeWsHost}/ws`);
+                    if (this.wsClient._channel && this.wsClient._channel.invoke) {
+                        this.logger.info(`Connected WS node client to Host : ${nodeWsHost}`);
+                        this.activeHost = nodeWsHost
+                        this.patchDisconnectEvent()
+                        this.onConnected(this.wsClient)
+                    }
                     this.isInstantiating = false;
                 }
                 if (this.wsClient._channel && this.wsClient._channel.invoke) {
-                    this.logger.info(`Connected WS node client to Host : ${nodeWsHost}`);
-                    this.patchDisconnectEvent()
-                    this.activeHost = nodeWsHost
-                    this.onConnected(this.wsClient)
                     return this.wsClient;
                 }
             }
@@ -75,7 +78,7 @@ class LiskNodeWsClient {
     }
 
     onDisconnect = () => {
-        console.log(`Disconnected from server host ${this.activeHost}`)
+        this.logger.warn(`Disconnected from server host ${this.activeHost}`)
         this.internalOnClose()
         this.onDisconnected()
         if (this.canReconnect) {
@@ -83,7 +86,7 @@ class LiskNodeWsClient {
         }
     }
 
-    createWsClient = async () => {
+    createWsClient = async (throwOnConnectErr = false) => {
         let wsClientErr = null;
         this.canReconnect = true
         for (let retry = 0 ; retry < LiskNodeWsClient.MAX_RETRY && this.canReconnect; retry++) {
@@ -104,14 +107,18 @@ class LiskNodeWsClient {
             this.logger.warn(`Retry: ${retry + 1}, Max retries : ${LiskNodeWsClient.MAX_RETRY}`);
             await wait(LiskNodeWsClient.RETRY_INTERVAL);
         }
-        throw wsClientErr;
+        if (throwOnConnectErr) {
+            throw wsClientErr;
+        }
+        await this.close(wsClientErr)
     };
 
-    close = async () => {
+    close = async (err) => {
+        this.canReconnect = false
         if (this.wsClient) {
-            this.canReconnect = false
             await this.wsClient.disconnect();
         }
+        await this.onClosed(err)
     }
 }
 
