@@ -223,8 +223,7 @@ class LiskV3DEXAdapter {
         });
 
         await channel.publish(`${this.alias}:${this.MODULE_BOOTSTRAP_EVENT}`);
-        const wsClient = await this.liskWsClient.getWsClient();
-        await this.subscribeToBlockChange(wsClient, async (eventType, block) => {
+        const publishBlockChangeEvent = async (eventType, block) => {
             const eventPayload = {
                 data: {
                     type: eventType,
@@ -232,18 +231,25 @@ class LiskV3DEXAdapter {
                         timestamp: block.header.timestamp,
                         height: block.header.height,
                     },
-                },
+                }
             };
             await channel.publish(`${this.alias}:${this.MODULE_CHAIN_STATE_CHANGES_EVENT}`, eventPayload);
-        });
+        }
+        const wsClient = await this.liskWsClient.createWsClient();
+        await this.subscribeToBlockChange(wsClient, publishBlockChangeEvent);
+
+        // For future reconnects, subscribe to block change
+        this.liskWsClient.onConnected = async (wsClient) => {
+            await this.subscribeToBlockChange(wsClient, publishBlockChangeEvent);
+        }
     }
 
     async unload() {
-        await this.liskWsClient.disconnect();
+        await this.liskWsClient.close();
     }
 
     _getSignedTransactionBytes = async (transactionId) => {
-        const wsClient = await this.liskWsClient.getWsClient();
+        const wsClient = await this.liskWsClient.createWsClient();
         const transaction = await wsClient.transaction.get(transactionId);
         const unsignedTransaction = {...transaction, signatures: []};
         return wsClient.transaction.encode(unsignedTransaction);

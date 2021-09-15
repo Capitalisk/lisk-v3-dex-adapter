@@ -34,14 +34,26 @@ async function main() {
     //     walletAddress: 'lskhszrdpk5yzngd885cvsvsuxcko7trsvdpn2moz'
     //     }})
     // console.log(transactions)
-    // const wsClient = await adapter.liskWsClient.getWsClient()
-    const transactionBytes = await adapter._getSignedTransactionBytes('22abf94935943a3e3cd7b5cd59f521b508c2e7b58e1585d34c129dd1cf7ec4ff')
-    const transactionHex = transactionBytes.toString('hex')
-    console.log(transactionHex)
-    // await adapter.subscribeToBlockChange(wsClient, (type, block) => {
-    //     console.log(`type ${type} : block ${JSON.stringify(block)}`)
-    // })
-    // await sleep(10000000)
+
+    // const transactionBytes = await adapter._getSignedTransactionBytes('22abf94935943a3e3cd7b5cd59f521b508c2e7b58e1585d34c129dd1cf7ec4ff')
+    // const transactionHex = transactionBytes.toString('hex')
+    // console.log(transactionHex)
+
+    const wsClient = await adapter.liskWsClient.createWsClient()
+    await adapter.subscribeToBlockChange(wsClient, (type, block) => {
+        console.log(`type ${type} : block ${block}`)
+    })
+    adapter.liskWsClient.onConnected = async (wsClient) => {
+        await adapter.subscribeToBlockChange(wsClient, (type, block) => {
+            console.log(`type ${type} : block ${block}`)
+        })
+    }
+    adapter.liskWsClient.onDisconnected = (wsClient) => {
+        console.log("Disconnected")
+    }
+    await adapter.subscribeToBlockChange(wsClient, (type, block) => {
+        console.log(`type ${type} : block ${block}`)
+    })
 }
 
 function sleep(ms) {

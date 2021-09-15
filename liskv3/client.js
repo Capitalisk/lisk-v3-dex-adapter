@@ -15,6 +15,8 @@ class LiskNodeWsClient {
         this.logger = logger;
         this.isInstantiating = false;
         this.wsClient = null;
+        this.onConnected = async () => {}
+        this.onDisconnected = async () => {}
     }
 
     setDefaultConfig = (config) => {
@@ -36,14 +38,21 @@ class LiskNodeWsClient {
                     this.wsClient = await createWSClient(`${nodeWsHost}/ws`);
                     this.isInstantiating = false;
                 }
-                return this.wsClient;
+                if (this.wsClient._channel && this.wsClient._channel.invoke) {
+                    this.logger.info(`Connected WS node client to Host : ${nodeWsHost}`);
+                    this.patchDisconnectEvent()
+                    this.activeHost = nodeWsHost
+                    this.onConnected(this.wsClient)
+                    return this.wsClient;
+                }
             }
         } catch (err) {
-            this.isInstantiating = false;
             this.logger.error(`Error instantiating WS client to ${nodeWsHost}`);
+            this.isInstantiating = false;
             this.logger.error(err.message);
             throw err;
         }
+        return null
     };
 
     tryUsingFallback = async () => {
@@ -60,22 +69,35 @@ class LiskNodeWsClient {
         }
     };
 
-    getWsClient = async () => {
+    patchDisconnectEvent = () => {
+         this.internalOnClose = this.wsClient._channel._ws.onclose
+         this.wsClient._channel._ws.onclose = this.onDisconnect
+    }
+
+    onDisconnect = () => {
+        console.log(`Disconnected from server host ${this.activeHost}`)
+        this.internalOnClose()
+        this.onDisconnected()
+        if (this.canReconnect) {
+            this.createWsClient()
+        }
+    }
+
+    createWsClient = async () => {
         let wsClientErr = null;
         this.canReconnect = true
-        for (let retry = 0 ; retry < LiskNodeWsClient && this.canReconnect; retry++) {
+        for (let retry = 0 ; retry < LiskNodeWsClient.MAX_RETRY && this.canReconnect; retry++) {
             try {
                 this.logger.info(`Trying node WS primary host ${this.liskNodeWsHost}`);
                 const nodeWsClient = await this.instantiateClient(this.liskNodeWsHost);
-                if (nodeWsClient && nodeWsClient._channel && nodeWsClient._channel.invoke) {
-                    this.logger.info(`Connected WS node client to Host : ${this.liskNodeWsHost}`);
+                if (nodeWsClient) {
                     return nodeWsClient;
                 }
             } catch (err) {
                 this.logger.warn(`Host(${this.liskNodeWsHost}) Error : ${err.message}, trying out available fallbacks`);
                 wsClientErr = err;
                 const nodeWsClient = await this.tryUsingFallback();
-                if (nodeWsClient && nodeWsClient._channel && nodeWsClient._channel.invoke) {
+                if (nodeWsClient) {
                     return nodeWsClient;
                 }
             }
@@ -85,10 +107,10 @@ class LiskNodeWsClient {
         throw wsClientErr;
     };
 
-    disconnect = async () => {
+    close = async () => {
         if (this.wsClient) {
-            await this.wsClient.disconnect();
             this.canReconnect = false
+            await this.wsClient.disconnect();
         }
     }
 }
