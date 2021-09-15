@@ -1,5 +1,7 @@
 'use strict';
 
+const { getBase32AddressFromPublicKey } = require('@liskhq/lisk-cryptography');
+const {toBuffer} = require('../common/utils')
 const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistError, accountWasNotMultisigError, accountDidNotExistError, transactionBroadcastError} = require('./errors');
 const LiskServiceRepository = require('../lisk-service/repository');
 const {getMatchingKeySignatures} = require('../common/signature');
@@ -53,7 +55,7 @@ class LiskV3DEXAdapter {
         };
     }
 
-    isMultiSigAccount = (account) => account.summary.isMultisignature;
+    isMultiSigAccount = (account) => account.summary && account.summary.isMultisignature;
 
     getMultisigWalletMembers = async ({params: {walletAddress}}) => {
         try {
@@ -94,7 +96,7 @@ class LiskV3DEXAdapter {
     getOutboundTransactions = async ({params: {walletAddress, fromTimestamp, limit, order}}) => {
         try {
             const transactions = await this.liskServiceRepo.getOutboundTransactions(walletAddress, fromTimestamp, limit, order);
-            return transactions.map(transactionMapper);
+            return await Promise.all(transactions.map(this.transactionMapper));
         } catch (err) {
             if (httpClient.notFound(err)) {
                 return [];
@@ -106,7 +108,7 @@ class LiskV3DEXAdapter {
     getInboundTransactionsFromBlock = async ({params: {walletAddress, blockId}}) => {
         try {
             const transactions = await this.liskServiceRepo.getInboundTransactionsFromBlock(walletAddress, blockId);
-            return transactions.map(transactionMapper);
+            return await Promise.all(transactions.map(this.transactionMapper));
         } catch (err) {
             if (httpClient.notFound(err)) {
                 return [];
@@ -118,7 +120,7 @@ class LiskV3DEXAdapter {
     getOutboundTransactionsFromBlock = async ({params: {walletAddress, blockId}}) => {
         try {
             const transactions = await this.liskServiceRepo.getOutboundTransactionsFromBlock(walletAddress, blockId);
-            return transactions.map(transactionMapper);
+            return await Promise.all(transactions.map(this.transactionMapper));
         } catch (err) {
             if (httpClient.notFound(err)) {
                 return [];
@@ -250,13 +252,24 @@ class LiskV3DEXAdapter {
     _signatureMapper = async ({id, sender, signatures}) => {
         if (signatures.length > 0) {
             const account = await this.liskServiceRepo.getAccountByAddress(sender.address);
-            const {mandatoryKeys, optionalKeys} = account.keys;
-            const publicKeys = [...mandatoryKeys, ...optionalKeys, sender.publicKey];
-            const transactionBytes = await this._getSignedTransactionBytes(id);
-            const matchingKeySignatures = getMatchingKeySignatures(publicKeys, signatures, transactionBytes);
-            console.log(matchingKeySignatures);
+            if (this.isMultiSigAccount(account)) {
+                const {mandatoryKeys, optionalKeys} = account.keys;
+                const publicKeys = Array.from(new Set([...mandatoryKeys, ...optionalKeys, sender.publicKey]));
+                const transactionBytes = await this._getSignedTransactionBytes(id);
+                return getMatchingKeySignatures(publicKeys, signatures, transactionBytes);
+            }
         }
+        return []
     };
+
+    transactionMapper = async (transaction) => {
+        const keySignatureMapping = await this._signatureMapper(transaction)
+        transaction.signatures = keySignatureMapping.map(({publicKey, signature}) => {
+            const signerAddress = getBase32AddressFromPublicKey(toBuffer(publicKey), "lsk")
+            return {signerAddress, signature}
+        })
+        return transactionMapper(transaction)
+    }
 }
 
 module.exports = LiskV3DEXAdapter;

@@ -64,10 +64,12 @@ describe('DEX API tests', async () => {
 
     describe('getMultisigWalletMembers action', async () => {
 
+      const multiSigWalletAddress = 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4'
+
       it('should return an array of member addresses', async () => {
         let walletMembers = await adapterModule.actions.getMultisigWalletMembers.handler({
           params: {
-            walletAddress: 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4'
+            walletAddress: multiSigWalletAddress
           }
         });
         const memberAddessList = ['lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4', 'lskmpnnwk2dcrywz6egczeducykso8ykyj9ppdsrh']
@@ -96,10 +98,12 @@ describe('DEX API tests', async () => {
 
     describe('getMinMultisigRequiredSignatures action', async () => {
 
+      const multiSigWalletAddress = 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4'
+
       it('should return the number of required signatures', async () => {
         let requiredSignatureCount = await adapterModule.actions.getMinMultisigRequiredSignatures.handler({
           params: {
-            walletAddress: 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4'
+            walletAddress: multiSigWalletAddress
           }
         });
         assert.equal(requiredSignatureCount, 2);
@@ -313,23 +317,24 @@ describe('DEX API tests', async () => {
         assert.equal(transactions[0].message, '');
       });
 
-      it.skip('should return transactions with a valid signatures property if transaction is from a multisig wallet', async () => {
+      it('should return transactions with a valid signatures property if transaction is from a multisig wallet', async () => {
+        const multiSigWalletAddress = 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4'
         let transactions = await adapterModule.actions.getOutboundTransactionsFromBlock.handler({
           params: {
-            walletAddress: clientForger.walletAddress,
-            blockId: blockList[2].id
+            walletAddress: multiSigWalletAddress,
+            blockId: '50e300c2c5ad79aa23a83a9febf584f82b0784c4488708f9a521ffacfbdbaf75'
           }
         });
-        assert.equal(Array.isArray(transactions), true);
+        assert(Array.isArray(transactions));
         assert.equal(transactions.length, 1);
         let txn = transactions[0];
 
         assert.equal(typeof txn.id, 'string');
         assert.equal(typeof txn.message, 'string');
         assert.equal(typeof txn.amount, 'string');
-        assert.equal(Number.isNaN(Number(txn.amount)), false);
-        assert.equal(Number.isInteger(txn.timestamp), true);
-        assert.equal(Array.isArray(txn.signatures), true);
+        assert(!Number.isNaN(Number(txn.amount)));
+        assert(Number.isInteger(txn.timestamp));
+        assert(Array.isArray(txn.signatures));
         for (let signature of txn.signatures) {
           assert.notEqual(signature, null);
           assert.equal(typeof signature.signerAddress, 'string');

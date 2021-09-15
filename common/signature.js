@@ -1,5 +1,5 @@
 const { verifyData } = require('@liskhq/lisk-cryptography');
-const {toHexBuffer} = require('./utils')
+const {toBuffer} = require('./utils')
 const {TAG_TRANSACTION, TESTNET_NETWORK_IDENTIFIER} = require('./constants')
 
 const getMatchingKeySignatures = (
@@ -28,7 +28,7 @@ const validateSignature = (
     tag = TAG_TRANSACTION,
 )  => {
     const transactionWithNetworkIdentifierBytes = Buffer.concat([networkIdentifier, transactionBytes])
-    return verifyData(transactionWithNetworkIdentifierBytes, toHexBuffer(signature), toHexBuffer(publicKey));
+    return verifyData(transactionWithNetworkIdentifierBytes, toBuffer(signature), toBuffer(publicKey));
 };
 
 module.exports = {getMatchingKeySignatures, validateSignature}
