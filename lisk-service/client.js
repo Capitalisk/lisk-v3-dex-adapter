@@ -12,6 +12,8 @@ class HttpClient {
 
     static HttpPostRequestFn = (path, payload) => (baseUrl) => axios.post(`${baseUrl}${path}`, payload);
 
+    static notFound = (err) => err && err.response && err.response.status === 404;
+
     tryWithFallback = async (requestFn) => {
         if (!(this.fallbacks && this.fallbacks.length > 0)) {
             this.logger.warn('No fallbacks found');
@@ -19,7 +21,10 @@ class HttpClient {
         }
         for (const fallback of this.fallbacks) {
             try {
-                return await requestFn(fallback);
+                this.activeHost = fallback;
+                const response = await requestFn(fallback);
+                this.setActiveHost(fallback);
+                return response;
             } catch (e) {
                 this.logger.warn(`Failed to get data from fallback ${fallback}, trying next fallback`);
             }
@@ -27,14 +32,23 @@ class HttpClient {
         return null;
     };
 
-    static notFound = (err) => err && err.response && err.response.status === 404
-
     canFallback = (err) => !(err && err.response && err.response.status < 500);
+
+    setActiveHost = (host) => {
+        if (host === this.activeHost) {
+            return;
+        }
+        this.fallbacks = this.fallbacks.filter(fallback => fallback !== host);
+        this.fallbacks.push(this.getPreferredHost()); // push prev fallback host
+        this.activeHost = host;
+    };
+
+    getPreferredHost = () => this.activeHost ? this.activeHost : this.baseUrl;
 
     get = async (path, params) => {
         const getReqFn = HttpClient.HttpGetRequestFn(path, params);
         try {
-            return await getReqFn(this.baseUrl);
+            return await getReqFn(this.getPreferredHost());
         } catch (err) {
             if (this.canFallback(err)) {
                 this.logger.warn(`Failed to get data from ${this.baseUrl}, trying fallbacks in given order`);
@@ -50,7 +64,7 @@ class HttpClient {
     post = async (path, payload) => {
         const postReqFn = HttpClient.HttpPostRequestFn(path, payload);
         try {
-            return await postReqFn(this.baseUrl);
+            return await postReqFn(this.getPreferredHost());
         } catch (err) {
             if (this.canFallback(err)) {
                 this.logger.warn(`Failed to get data from ${this.baseUrl}, trying fallbacks in given order`);
