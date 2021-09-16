@@ -72,8 +72,8 @@ class HttpClient {
                 if (response) {
                     return response;
                 }
-                throw err;
             }
+            throw err;
         }
     };
 }
