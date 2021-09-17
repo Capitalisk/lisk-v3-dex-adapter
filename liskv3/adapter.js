@@ -1,7 +1,7 @@
 'use strict';
 
-const { getBase32AddressFromPublicKey } = require('@liskhq/lisk-cryptography');
-const {toBuffer} = require('../common/utils')
+const {getBase32AddressFromPublicKey} = require('@liskhq/lisk-cryptography');
+const {toBuffer} = require('../common/utils');
 const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistError, accountWasNotMultisigError, accountDidNotExistError, transactionBroadcastError} = require('./errors');
 const LiskServiceRepository = require('../lisk-service/repository');
 const {getMatchingKeySignatures} = require('../common/signature');
@@ -20,7 +20,7 @@ class LiskV3DEXAdapter {
     constructor({alias, config = {}, logger = console} = {config: {}, logger: console}) {
         this.alias = alias || DEFAULT_MODULE_ALIAS;
         this.logger = logger;
-        this.dexWalletAddress = config.dexWalletAddress
+        this.dexWalletAddress = config.dexWalletAddress;
         this.liskServiceRepo = new LiskServiceRepository({config, logger});
         this.liskWsClient = new LiskWSClient({config, logger});
     }
@@ -219,7 +219,7 @@ class LiskV3DEXAdapter {
 
     async load(channel) {
         if (!this.dexWalletAddress) {
-            throw new Error("Dex wallet address not provided in the config")
+            throw new Error('Dex wallet address not provided in the config');
         }
         this.channel = channel;
 
@@ -241,24 +241,24 @@ class LiskV3DEXAdapter {
                 },
             };
             await channel.publish(`${this.alias}:${this.MODULE_CHAIN_STATE_CHANGES_EVENT}`, eventPayload);
-        }
+        };
         const wsClient = await this.liskWsClient.createWsClient(true);
         await this.subscribeToBlockChange(wsClient, publishBlockChangeEvent);
 
         // For future reconnects, subscribe to block change
         this.liskWsClient.onConnected = async (wsClient) => {
             await this.subscribeToBlockChange(wsClient, publishBlockChangeEvent);
-        }
+        };
 
         this.liskWsClient.onClosed = async (err) => {
             const errPayload = {
                 data: {
-                    type: "LiskNodeWsConnectionErr",
-                    err
-                }
+                    type: 'LiskNodeWsConnectionErr',
+                    err,
+                },
             };
             await channel.publish(`${this.alias}:${this.MODULE_LISK_WS_CLOSE_EVENT}`, errPayload);
-        }
+        };
     }
 
     async unload() {
@@ -277,17 +277,17 @@ class LiskV3DEXAdapter {
             const transactionBytes = await this._getSignedTransactionBytes(id);
             return getMatchingKeySignatures(this.dexMultiSigPublicKeys, signatures, transactionBytes);
         }
-        return []
+        return [];
     };
 
     transactionMapper = async (transaction) => {
-        const keySignatureMapping = await this._signatureMapper(transaction)
+        const keySignatureMapping = await this._signatureMapper(transaction);
         transaction.signatures = keySignatureMapping.map(({publicKey, signature}) => {
-            const signerAddress = getBase32AddressFromPublicKey(toBuffer(publicKey), "lsk")
-            return {signerAddress, signature}
-        })
-        return transactionMapper(transaction)
-    }
+            const signerAddress = getBase32AddressFromPublicKey(toBuffer(publicKey), 'lsk');
+            return {signerAddress, signature};
+        });
+        return transactionMapper(transaction);
+    };
 }
 
 module.exports = LiskV3DEXAdapter;

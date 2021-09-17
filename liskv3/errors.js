@@ -8,10 +8,10 @@ class InvalidActionError extends Error {
 
     toString() {
         return (JSON.stringify({
-            "name": this.name,
-            "type": this.type,
-            "message": this.message,
-            "cause": this.cause
+            'name': this.name,
+            'type': this.type,
+            'message': this.message,
+            'cause': this.cause,
         }));
     }
 }
@@ -20,8 +20,8 @@ const multisigAccountDidNotExistError = 'MultisigAccountDidNotExistError';
 const accountDidNotExistError = 'AccountDidNotExistError';
 const accountWasNotMultisigError = 'AccountWasNotMultisigError';
 const blockDidNotExistError = 'BlockDidNotExistError';
-const transactionDidNotExistError = 'TransactionDidNotExistError'
-const transactionBroadcastError = 'TransactionBroadcastError'
+const transactionDidNotExistError = 'TransactionDidNotExistError';
+const transactionBroadcastError = 'TransactionBroadcastError';
 
 module.exports = {
     InvalidActionError,
@@ -30,5 +30,5 @@ module.exports = {
     accountWasNotMultisigError,
     blockDidNotExistError,
     transactionDidNotExistError,
-    transactionBroadcastError
+    transactionBroadcastError,
 };

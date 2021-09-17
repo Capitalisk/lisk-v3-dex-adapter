@@ -26,17 +26,17 @@ const Store = {
         },
     },
     Blocks: {
-        path : '/api/v2/blocks',
-        filter : {
+        path: '/api/v2/blocks',
+        filter: {
             blockId: 'blockId',
-            height : 'height', // Can be expressed as an interval ie. 1:20
-            generatorAddress : 'generatorAddress', // Resolves new and old address system
+            height: 'height', // Can be expressed as an interval ie. 1:20
+            generatorAddress: 'generatorAddress', // Resolves new and old address system
             generatorPublicKey: 'generatorPublicKey',
             generatorUsername: 'generatorUsername',
             timestamp: 'timestamp', // Can be expressed as interval ie. 100000:200000
             limit: 'limit',
             offset: 'offset',
-            sort: 'sort'
+            sort: 'sort',
         },
         sortBy: {
             heightAsc: 'height:asc',
@@ -46,8 +46,8 @@ const Store = {
         },
     },
     Transactions: {
-        path : '/api/v2/transactions',
-        filter : {
+        path: '/api/v2/transactions',
+        filter: {
             transactionId: 'transactionId',
             moduleAssetId: 'moduleAssetId', // Transfer transaction: moduleID = 2,assetID = 0 eg. 2:0
             moduleAssetName: 'moduleAssetName', // Transfer transaction: moduleName = token, assetName = transfer eg. token:transfer
@@ -67,32 +67,32 @@ const Store = {
             nonce: 'nonce', // In conjunction with senderAddress
             limit: 'limit',
             offset: 'offset',
-            sort: 'sort'
+            sort: 'sort',
         },
         sortBy: {
             amountAsc: 'amount:asc',
             amountDesc: 'amount:desc',
             timestampAsc: 'timestamp:asc',
             timestampDesc: 'timestamp:desc',
-        }
+        },
     },
-    TransactionStats : {
-        path : '/api/v2/transactions/statistics/',
+    TransactionStats: {
+        path: '/api/v2/transactions/statistics/',
         filter: {
-            interval : 'interval', // ['day', 'month']
+            interval: 'interval', // ['day', 'month']
             limit: 'limit', // default 10
             offset: 'offset', // default 0
-        }
+        },
     },
-    TransactionSchema : {
-        path : '/api/v2/transactions/schemas',
+    TransactionSchema: {
+        path: '/api/v2/transactions/schemas',
         filter: {
             moduleAssetId: 'moduleAssetId', // Transfer transaction: moduleID = 2,assetID = 0 (ModuleId:AssetId /[0-9]+:[0-9]+/)
-            moduleAssetName: 'moduleAssetName' // Transfer transaction: moduleName = token, assetName = transfer (ModuleName:AssetName /[a-z]+:[a-z]+/)
-        }
+            moduleAssetName: 'moduleAssetName', // Transfer transaction: moduleName = token, assetName = transfer (ModuleName:AssetName /[a-z]+:[a-z]+/)
+        },
     },
     Network: {
-        path : '/api/v2/peers',
+        path: '/api/v2/peers',
         filter: {
             ip: 'ip',
             networkVersion: 'networkVersion',
@@ -100,14 +100,14 @@ const Store = {
             height: 'height',
             limit: 'limit', // default 10
             offset: 'offset', // default 0
-            sort: 'sort' // default "height:desc"
+            sort: 'sort', // default "height:desc"
         },
-        sortBy : {
+        sortBy: {
             heightAsc: 'height:asc',
             heightDesc: 'height:desc',
-            networkVersionAsc : 'networkVersion:asc',
-            networkVersionDesc : 'networkVersion:desc'
-        }
+            networkVersionAsc: 'networkVersion:asc',
+            networkVersionDesc: 'networkVersion:desc',
+        },
     },
     SentVotes: {
         path: '/api/v2/votes_sent',

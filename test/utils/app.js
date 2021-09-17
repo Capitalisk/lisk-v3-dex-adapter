@@ -1,31 +1,31 @@
 class AppModule {
-  constructor() {
-    this.appState = {};
-  }
+    constructor() {
+        this.appState = {};
+    }
 
-  setEmitter(emitter) {
-    this.emitter = emitter;
-  }
+    get eventHandlers() {
+        return {};
+    }
 
-  get eventHandlers() {
-    return {};
-  }
-
-  get actionHandlers() {
-    return {
-      updateModuleState: async (stateChange) => {
-        this.appState = {
-          ...this.appState,
-          ...stateChange
-        };
-      },
-      getApplicationState: async () => {
+    get actionHandlers() {
         return {
-          ...this.appState
+            updateModuleState: async (stateChange) => {
+                this.appState = {
+                    ...this.appState,
+                    ...stateChange,
+                };
+            },
+            getApplicationState: async () => {
+                return {
+                    ...this.appState,
+                };
+            },
         };
-      }
-    };
-  }
+    }
+
+    setEmitter(emitter) {
+        this.emitter = emitter;
+    }
 }
 
 module.exports = AppModule;

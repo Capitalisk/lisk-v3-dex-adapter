@@ -11,7 +11,7 @@ const arrOrFirstOrNull = (arr) => arr.length > 1 ? arr : firstOrNull(arr);
 
 const firstValue = (array) => array[0];
 
-const isNullOrUndefinedOrEmpty = (obj , checkEmptyString = false) =>
+const isNullOrUndefinedOrEmpty = (obj, checkEmptyString = false) =>
     isNullOrUndefined(obj) || isEmpty(obj) || (checkEmptyString && typeof obj === 'string' && isEmptyString(obj));
 
 const isNullOrUndefined = (obj) => obj == null || obj === undefined;
@@ -38,10 +38,24 @@ const sort = (arr, key) => arr.sort((o1, o2) => {
     return o1[key].localeCompare(o2[key]);
 });
 
-const toBuffer = (data) => Buffer.from(data, 'hex')
+const toBuffer = (data) => Buffer.from(data, 'hex');
 
-const bufferToString = (hexBuffer) => hexBuffer.toString('hex')
+const bufferToString = (hexBuffer) => hexBuffer.toString('hex');
 
-const wait = (duration) => new Promise(resolve => setTimeout(resolve, duration))
+const wait = (duration) => new Promise(resolve => setTimeout(resolve, duration));
 
-module.exports = {isNullOrUndefinedOrEmpty, firstOrDefault, isLocal, isNullOrUndefined, run, sort, arrOrFirstOrNull, isEmpty, firstOrNull,arrOrDefault, wait, toBuffer, bufferToString};
+module.exports = {
+    isNullOrUndefinedOrEmpty,
+    firstOrDefault,
+    isLocal,
+    isNullOrUndefined,
+    run,
+    sort,
+    arrOrFirstOrNull,
+    isEmpty,
+    firstOrNull,
+    arrOrDefault,
+    wait,
+    toBuffer,
+    bufferToString,
+};

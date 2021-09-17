@@ -1,6 +1,6 @@
-const { verifyData } = require('@liskhq/lisk-cryptography');
-const {toBuffer} = require('./utils')
-const {TAG_TRANSACTION, TESTNET_NETWORK_IDENTIFIER} = require('./constants')
+const {verifyData} = require('@liskhq/lisk-cryptography');
+const {toBuffer} = require('./utils');
+const {TAG_TRANSACTION, TESTNET_NETWORK_IDENTIFIER} = require('./constants');
 
 const getMatchingKeySignatures = (
     publicKeys,
@@ -9,15 +9,15 @@ const getMatchingKeySignatures = (
     networkIdentifier = TESTNET_NETWORK_IDENTIFIER,
     tag = TAG_TRANSACTION,
 ) => {
-    const keySignaturePair = []
+    const keySignaturePair = [];
     for (const publicKey of publicKeys) {
         for (const signature of signatures) {
             if (validateSignature(publicKey, signature, transactionBytes, networkIdentifier, tag)) {
-                keySignaturePair.push({publicKey, signature})
+                keySignaturePair.push({publicKey, signature});
             }
         }
     }
-    return keySignaturePair
+    return keySignaturePair;
 };
 
 const validateSignature = (
@@ -26,9 +26,9 @@ const validateSignature = (
     transactionBytes,
     networkIdentifier = TESTNET_NETWORK_IDENTIFIER,
     tag = TAG_TRANSACTION,
-)  => {
-    const transactionWithNetworkIdentifierBytes = Buffer.concat([networkIdentifier, transactionBytes])
+) => {
+    const transactionWithNetworkIdentifierBytes = Buffer.concat([networkIdentifier, transactionBytes]);
     return verifyData(transactionWithNetworkIdentifierBytes, toBuffer(signature), toBuffer(publicKey));
 };
 
-module.exports = {getMatchingKeySignatures, validateSignature}
+module.exports = {getMatchingKeySignatures, validateSignature};
