@@ -11,11 +11,12 @@ const {wait} = require('../common/utils');
 
 describe('DEX API tests', async () => {
   let adapterModule;
-  let options;
+  let bootstrapEventTriggered;
+  let chainChangeEvents= [];
 
   before(async () => {
     adapterModule = new LiskV3DEXAdapterModule({
-      config: { env: 'test'},
+      config: { env: 'test', dexWalletAddress : 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4'},
       logger: {
         info: () => {},
         // info: (...args) => console.info.apply(console, args),
@@ -26,13 +27,21 @@ describe('DEX API tests', async () => {
       }
     });
 
-    // this.channel = new Channel({
-    //   modules: {
-    //     app: new AppModuleMock()
-    //   }
-    // });
-    //
-    // await adapterModule.load(this.channel);
+    this.channel = new Channel({
+      modules: {
+        app: new AppModuleMock()
+      }
+    });
+
+    this.channel.subscribe(`${adapterModule.alias}:${adapterModule.MODULE_BOOTSTRAP_EVENT}`, ()=> {
+      bootstrapEventTriggered = true
+    })
+
+    this.channel.subscribe(`${adapterModule.alias}:${adapterModule.MODULE_CHAIN_STATE_CHANGES_EVENT}`, (payload)=> {
+      chainChangeEvents.push(payload)
+    })
+
+    await adapterModule.load(this.channel);
   });
 
   after(async () => {
@@ -510,23 +519,22 @@ describe('DEX API tests', async () => {
 
   });
 
-  describe.skip('module events', async () => {
+  describe('module events', async () => {
 
     it('should trigger bootstrap event after launch', async () => {
-      await wait(200);
-      // assert.equal(bootstrapEventTriggered, true);
+      assert(bootstrapEventTriggered);
     });
 
     it('should expose a chainChanges event', async () => {
-      await wait(30000);
-      // assert.equal(chainChangeEvents.length >=1, true);
-      // let eventData = chainChangeEvents[0].data;
-      // assert.equal(eventData.type, 'addBlock');
-      // let { block } = eventData;
-      // assert.notEqual(block, null);
-      // assert.equal(block.height, 1);
-      // assert.equal(Number.isInteger(block.timestamp), true);
-    });
+      await wait(5000);
+      assert(chainChangeEvents.length >=1);
+      let eventData = chainChangeEvents[0].data;
+      assert.equal(eventData.type, 'addBlock');
+      let { block } = eventData;
+      assert.notEqual(block, null);
+      assert(Number.isInteger(block.height));
+      assert(Number.isInteger(block.timestamp));
+    }).timeout(30000);
 
   });
 

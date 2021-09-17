@@ -20,6 +20,7 @@ class LiskV3DEXAdapter {
     constructor({alias, config = {}, logger = console} = {config: {}, logger: console}) {
         this.alias = alias || DEFAULT_MODULE_ALIAS;
         this.logger = logger;
+        this.dexWalletAddress = config.dexWalletAddress
         this.liskServiceRepo = new LiskServiceRepository({config, logger});
         this.liskWsClient = new LiskWSClient({config, logger});
     }
@@ -217,22 +218,27 @@ class LiskV3DEXAdapter {
     };
 
     async load(channel) {
+        if (!this.dexWalletAddress) {
+            throw new Error("Dex wallet address not provided in the config")
+        }
         this.channel = channel;
 
         await this.channel.invoke('app:updateModuleState', {
             [this.alias]: {},
         });
-
         await channel.publish(`${this.alias}:${this.MODULE_BOOTSTRAP_EVENT}`);
+
+        const account = await this.liskServiceRepo.getAccountByAddress(this.dexWalletAddress);
+        const {mandatoryKeys, optionalKeys} = account.keys;
+        this.dexMultiSigPublicKeys = Array.from(new Set([...mandatoryKeys, ...optionalKeys, account.summary.publicKey]));
+
         const publishBlockChangeEvent = async (eventType, block) => {
             const eventPayload = {
-                data: {
-                    type: eventType,
-                    block: {
-                        timestamp: block.header.timestamp,
-                        height: block.header.height,
-                    },
-                }
+                type: eventType,
+                block: {
+                    timestamp: block.header.timestamp,
+                    height: block.header.height,
+                },
             };
             await channel.publish(`${this.alias}:${this.MODULE_CHAIN_STATE_CHANGES_EVENT}`, eventPayload);
         }
@@ -266,15 +272,10 @@ class LiskV3DEXAdapter {
         return wsClient.transaction.encode(unsignedTransaction);
     };
 
-    _signatureMapper = async ({id, sender, signatures}) => {
-        if (signatures.length > 0) {
-            const account = await this.liskServiceRepo.getAccountByAddress(sender.address);
-            if (this.isMultiSigAccount(account)) {
-                const {mandatoryKeys, optionalKeys} = account.keys;
-                const publicKeys = Array.from(new Set([...mandatoryKeys, ...optionalKeys, sender.publicKey]));
-                const transactionBytes = await this._getSignedTransactionBytes(id);
-                return getMatchingKeySignatures(publicKeys, signatures, transactionBytes);
-            }
+    _signatureMapper = async ({id, sender, signatures = []}) => {
+        if (sender.address === this.dexWalletAddress) {
+            const transactionBytes = await this._getSignedTransactionBytes(id);
+            return getMatchingKeySignatures(this.dexMultiSigPublicKeys, signatures, transactionBytes);
         }
         return []
     };
