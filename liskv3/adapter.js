@@ -252,10 +252,8 @@ class LiskV3DEXAdapter {
 
         this.liskWsClient.onClosed = async (err) => {
             const errPayload = {
-                data: {
-                    type: 'LiskNodeWsConnectionErr',
-                    err,
-                },
+                type: 'LiskNodeWsConnectionErr',
+                err,
             };
             await channel.publish(`${this.alias}:${this.MODULE_LISK_WS_CLOSE_EVENT}`, errPayload);
         };
