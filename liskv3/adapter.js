@@ -201,7 +201,7 @@ class LiskV3DEXAdapter {
                 data: transaction.message,
                 nonce: BigInt(transaction.nonce)
             },
-            nonce: BigInt(transaction.nonce),
+            nonce: BigInt(transaction.accountNonce),
             senderPublicKey: Buffer.from(transaction.senderPublicKey, 'hex'),
             signatures: transaction.signatures.map((signaturePacket) => {
                 return Buffer.from(signaturePacket.signature, 'hex');
