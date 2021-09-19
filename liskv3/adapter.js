@@ -210,7 +210,7 @@ class LiskV3DEXAdapter {
         };
 
         try {
-            let response = await wsClient.send(signedTxn);
+            let response = await wsClient.transaction.send(signedTxn);
             if (!response || !response.transactionId) {
                 throw new Error('Invalid transaction response');
             }
