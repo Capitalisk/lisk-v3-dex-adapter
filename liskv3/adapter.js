@@ -189,8 +189,31 @@ class LiskV3DEXAdapter {
     };
 
     postTransaction = async ({params: {transaction}}) => {
+        const wsClient = await this.liskWsClient.createWsClient();
+
+        let signedTxn = {
+            moduleID: transaction.moduleID,
+            assetID: transaction.assetID,
+            fee: BigInt(transaction.fee),
+            asset: {
+                amount: BigInt(transaction.amount),
+                recipientAddress: Buffer.from(transaction.recipientAddress, 'hex'),
+                data: transaction.message,
+                nonce: BigInt(transaction.nonce)
+            },
+            nonce: BigInt(transaction.nonce),
+            senderPublicKey: Buffer.from(transaction.senderPublicKey, 'hex'),
+            signatures: transaction.signatures.map((signaturePacket) => {
+                return Buffer.from(signaturePacket.signature, 'hex');
+            }),
+            id: Buffer.from(transaction.id, 'hex')
+        };
+
         try {
-            return await this.liskServiceRepo.postTransaction({transaction});
+            let response = await wsClient.send(signedTxn);
+            if (!response || !response.transactionId) {
+                throw new Error('Invalid transaction response');
+            }
         } catch (err) {
             throw new InvalidActionError(transactionBroadcastError, `Error broadcasting transaction to the lisk-service`, err);
         }
