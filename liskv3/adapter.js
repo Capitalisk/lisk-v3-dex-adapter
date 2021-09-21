@@ -6,7 +6,7 @@ const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistErro
 const LiskServiceRepository = require('../lisk-service/repository');
 const {getMatchingKeySignatures} = require('../common/signature');
 const httpClient = require('../lisk-service/client');
-const LiskWSClient = require('./client');
+const LiskWSClient = require('lisk-v3-ws-client-manager');
 const {blockMapper, transactionMapper} = require('./mapper');
 const packageJSON = require('../package.json');
 const DEFAULT_MODULE_ALIAS = 'lisk_v3_dex_adapter';
