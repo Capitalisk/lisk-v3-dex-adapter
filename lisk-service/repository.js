@@ -119,7 +119,7 @@ class LiskServiceRepository {
         return firstOrNull(blocks);
     };
 
-    getBlocksBetweenHeight = async (fromHeight, toHeight, limit) => {
+    getBlocksBetweenHeights = async (fromHeight, toHeight, limit) => {
         const blockFilterParams = {
             [metaStore.Blocks.filter.height]: `${fromHeight}:${toHeight}`,
             [metaStore.Blocks.filter.limit]: limit,

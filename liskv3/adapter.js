@@ -163,7 +163,7 @@ class LiskV3DEXAdapter {
 
     getBlocksBetweenHeights = async ({params: {fromHeight, toHeight, limit}}) => {
         try {
-            const blocks = await this.liskServiceRepo.getBlocksBetweenHeight(fromHeight, toHeight, limit);
+            const blocks = await this.liskServiceRepo.getBlocksBetweenHeights(fromHeight, toHeight, limit);
             return blocks.map(blockMapper);
         } catch (err) {
             if (httpClient.notFound(err)) {
