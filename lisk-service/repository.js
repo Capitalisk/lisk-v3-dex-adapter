@@ -13,15 +13,15 @@ class LiskServiceRepository {
     }
 
     getDefaultHttpClientConfig = (config) => {
-        let defaultUrl = LiskServiceRepository.defaultMainNetUrl;
+        let defaultURL = LiskServiceRepository.defaultMainNetUrl;
         if (config.env === 'test') {
-            defaultUrl = LiskServiceRepository.defaultTestNetUrl;
+            defaultURL = LiskServiceRepository.defaultTestNetUrl;
         }
-        const baseUrl = config.liskServiceHost ? config.liskServiceHost : defaultUrl;
-        if (!config.liskServiceHostFallbacks) {
-            config.liskServiceHostFallbacks = [];
+        const baseUrl = config.serviceURL ? config.serviceURL : defaultURL;
+        if (!config.serviceURLFallbacks) {
+            config.serviceURLFallbacks = [];
         }
-        const fallbacks = [...config.liskServiceHostFallbacks, defaultUrl];
+        const fallbacks = [...config.serviceURLFallbacks, defaultURL];
         return {baseUrl, fallbacks};
     };
 
