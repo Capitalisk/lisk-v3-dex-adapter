@@ -5,24 +5,24 @@ const metaStore = require('./meta');
 
 class LiskServiceRepository {
 
-    static defaultTestNetUrl = 'https://testnet-service.lisk.com';
-    static defaultMainNetUrl = 'https://service.lisk.com';
+    static defaultTestNetURL = 'https://testnet-service.lisk.com';
+    static defaultMainNetURL = 'https://service.lisk.com';
 
     constructor({config = {}, logger = console}) {
         this.liskServiceClient = new HttpClient({config: this.getDefaultHttpClientConfig(config), logger});
     }
 
     getDefaultHttpClientConfig = (config) => {
-        let defaultURL = LiskServiceRepository.defaultMainNetUrl;
+        let defaultURL = LiskServiceRepository.defaultMainNetURL;
         if (config.env === 'test') {
-            defaultURL = LiskServiceRepository.defaultTestNetUrl;
+            defaultURL = LiskServiceRepository.defaultTestNetURL;
         }
-        const baseUrl = config.serviceURL ? config.serviceURL : defaultURL;
+        const baseURL = config.serviceURL ? config.serviceURL : defaultURL;
         if (!config.serviceURLFallbacks) {
             config.serviceURLFallbacks = [];
         }
         const fallbacks = [...config.serviceURLFallbacks, defaultURL];
-        return {baseUrl, fallbacks};
+        return {baseURL, fallbacks};
     };
 
     /**

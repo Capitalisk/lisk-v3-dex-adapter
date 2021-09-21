@@ -19,7 +19,7 @@ describe('DEX API tests', async () => {
             config: {
               env: 'test',
               dexWalletAddress: 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4',
-              // rpcURL: 'ws://216.128.135.183:8080'
+              rpcURL: 'ws://216.128.135.183:8080'
             },
             logger: {
                 info: () => {

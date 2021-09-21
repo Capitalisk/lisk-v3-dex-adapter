@@ -1,8 +1,8 @@
 const adpater = require('./index')
 const LiskRepository = require('./lisk-service/repository')
 async function main() {
-    // const liskTestnetUrl = 'https://testnet-service.lisk.com'
-    // const config = {baseUrl: liskTestnetUrl, fallbacks : [liskTestnetUrl, liskTestnetUrl]}
+    // const liskTestnetURL = 'https://testnet-service.lisk.com'
+    // const config = {baseURL: liskTestnetURL, fallbacks : [liskTestnetURL, liskTestnetURL]}
     // const logger = console
     // console.log(TAG_TRANSACTION)
     // const liskRepo = new LiskRepository({});

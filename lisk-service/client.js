@@ -3,14 +3,14 @@ const axios = require('axios');
 class HttpClient {
 
     constructor({config, logger}) {
-        this.baseUrl = config.baseUrl;
+        this.baseURL = config.baseURL;
         this.fallbacks = config.fallbacks;
         this.logger = logger;
     }
 
-    static HttpGetRequestFn = (path, params) => (baseUrl) => axios.get(`${baseUrl}${path}`, {params});
+    static HttpGetRequestFn = (path, params) => (baseURL) => axios.get(`${baseURL}${path}`, {params});
 
-    static HttpPostRequestFn = (path, payload) => (baseUrl) => axios.post(`${baseUrl}${path}`, payload);
+    static HttpPostRequestFn = (path, payload) => (baseURL) => axios.post(`${baseURL}${path}`, payload);
 
     static notFound = (err) => err && err.response && err.response.status === 404;
 
@@ -43,7 +43,7 @@ class HttpClient {
         this.activeHost = host;
     };
 
-    getPreferredHost = () => this.activeHost ? this.activeHost : this.baseUrl;
+    getPreferredHost = () => this.activeHost ? this.activeHost : this.baseURL;
 
     get = async (path, params) => {
         const getReqFn = HttpClient.HttpGetRequestFn(path, params);
@@ -51,7 +51,7 @@ class HttpClient {
             return await getReqFn(this.getPreferredHost());
         } catch (err) {
             if (this.canFallback(err)) {
-                this.logger.warn(`Failed to get data from ${this.baseUrl}, trying fallbacks in given order`);
+                this.logger.warn(`Failed to get data from ${this.baseURL}, trying fallbacks in given order`);
                 const response = await this.tryWithFallback(getReqFn);
                 if (response) {
                     return response;
@@ -67,7 +67,7 @@ class HttpClient {
             return await postReqFn(this.getPreferredHost());
         } catch (err) {
             if (this.canFallback(err)) {
-                this.logger.warn(`Failed to get data from ${this.baseUrl}, trying fallbacks in given order`);
+                this.logger.warn(`Failed to get data from ${this.baseURL}, trying fallbacks in given order`);
                 const response = await this.tryWithFallback(postReqFn);
                 if (response) {
                     return response;
