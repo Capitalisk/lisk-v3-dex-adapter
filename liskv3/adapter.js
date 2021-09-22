@@ -198,14 +198,14 @@ class LiskV3DEXAdapter {
             asset: {
                 amount: BigInt(transaction.amount),
                 recipientAddress: Buffer.from(transaction.recipientAddress, 'hex'),
-                data: transaction.message
+                data: transaction.message,
             },
             nonce: BigInt(transaction.nonce),
             senderPublicKey: Buffer.from(transaction.senderPublicKey, 'hex'),
             signatures: transaction.signatures.map((signaturePacket) => {
                 return Buffer.from(signaturePacket.signature, 'hex');
             }),
-            id: Buffer.from(transaction.id, 'hex')
+            id: Buffer.from(transaction.id, 'hex'),
         };
 
         try {
@@ -265,6 +265,8 @@ class LiskV3DEXAdapter {
             await channel.publish(`${this.alias}:${this.MODULE_CHAIN_STATE_CHANGES_EVENT}`, eventPayload);
         };
         const wsClient = await this.liskWsClient.createWsClient(true);
+        this.networkIdentifier = wsClient._nodeInfo.networkIdentifier;
+
         await this.subscribeToBlockChange(wsClient, publishBlockChangeEvent);
 
         // For future reconnects, subscribe to block change
@@ -295,7 +297,7 @@ class LiskV3DEXAdapter {
     _signatureMapper = async ({id, sender, signatures = []}) => {
         if (sender.address === this.dexWalletAddress) {
             const transactionBytes = await this._getSignedTransactionBytes(id);
-            return getMatchingKeySignatures(this.dexMultiSigPublicKeys, signatures, transactionBytes);
+            return getMatchingKeySignatures(this.dexMultiSigPublicKeys, signatures, transactionBytes, toBuffer(this.networkIdentifier));
         }
         return [];
     };

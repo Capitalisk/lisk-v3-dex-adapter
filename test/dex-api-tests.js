@@ -432,7 +432,7 @@ describe('DEX API tests', async () => {
                     },
                 });
                 assert.equal(Array.isArray(blocks), true);
-                assert.equal(blocks.length, 2);
+                assert.equal(blocks.length, 1);
                 let block = blocks[0];
                 assert.equal(typeof block.id, 'string');
                 assert.equal(Number.isInteger(block.timestamp), true);
@@ -448,8 +448,7 @@ describe('DEX API tests', async () => {
                     },
                 });
                 assert.equal(Array.isArray(blocks), true);
-                assert.equal(blocks.length, 1);
-                assert.equal(blocks[0].height, 14577191);
+                assert.equal(blocks.length, 0);
             });
 
             it('should return an empty array if no blocks are matched', async () => {
