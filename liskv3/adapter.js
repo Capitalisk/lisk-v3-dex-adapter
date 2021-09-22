@@ -1,6 +1,9 @@
 'use strict';
 
-const {getBase32AddressFromPublicKey} = require('@liskhq/lisk-cryptography');
+const {
+  getBase32AddressFromPublicKey,
+  getAddressFromBase32Address,
+} = require('@liskhq/lisk-cryptography');
 const {toBuffer} = require('../common/utils');
 const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistError, accountWasNotMultisigError, accountDidNotExistError, transactionBroadcastError} = require('./errors');
 const LiskServiceRepository = require('../lisk-service/repository');
@@ -197,7 +200,7 @@ class LiskV3DEXAdapter {
             fee: BigInt(transaction.fee),
             asset: {
                 amount: BigInt(transaction.amount),
-                recipientAddress: Buffer.from(transaction.recipientAddress, 'hex'),
+                recipientAddress: getAddressFromBase32Address(transaction.recipientAddress),
                 data: transaction.message,
             },
             nonce: BigInt(transaction.nonce),
