@@ -1,6 +1,6 @@
 const transactionMapper = ({nonce, asset: {amount, recipient, data}, sender, block: {timestamp}, signatures = []}) => {
     return {
-        id: nonce,
+        id: `${sender.address}-${nonce}`,
         message: data,
         amount,
         timestamp,
