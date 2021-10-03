@@ -1,5 +1,6 @@
 const crypto = require('crypto');
-const { DEX_TRANSACTION_ID_LENGTH } = require('./constants');
+
+const DEX_TRANSACTION_ID_LENGTH = 44;
 
 const objectType = 'object';
 const functionType = 'function';
