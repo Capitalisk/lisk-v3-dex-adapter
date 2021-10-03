@@ -1,3 +1,6 @@
+const crypto = require('crypto');
+const { DEX_TRANSACTION_ID_LENGTH } = require('./constants');
+
 const objectType = 'object';
 const functionType = 'function';
 
@@ -40,6 +43,8 @@ const sort = (arr, key) => arr.sort((o1, o2) => {
 
 const toBuffer = (data) => Buffer.from(data, 'hex');
 
+const computeDEXTransactionId = (senderAddress, nonce) => crypto.createHash('sha256').update(`${senderAddress}-${nonce}`).digest('hex').slice(0, DEX_TRANSACTION_ID_LENGTH);
+
 const bufferToString = (hexBuffer) => hexBuffer.toString('hex');
 
 const wait = (duration) => new Promise(resolve => setTimeout(resolve, duration));
@@ -57,5 +62,6 @@ module.exports = {
     arrOrDefault,
     wait,
     toBuffer,
+    computeDEXTransactionId,
     bufferToString,
 };
