@@ -225,7 +225,8 @@ class LiskV3DEXAdapter {
                 throw new Error('Invalid transaction response');
             }
         } catch (err) {
-            throw new InvalidActionError(transactionBroadcastError, `Error broadcasting transaction to the lisk network`, err);
+            const baseMessage = err.message ? ` - ${err.message}` : '';
+            throw new InvalidActionError(transactionBroadcastError, `Error broadcasting transaction to the lisk network${baseMessage}`, err);
         }
     };
 
