@@ -194,6 +194,16 @@ class LiskV3DEXAdapter {
     postTransaction = async ({params: {transaction}}) => {
         const wsClient = await this.liskWsClient.createWsClient();
 
+        let publicKeySignatures = {};
+        for (let signaturePacket of transaction.signatures) {
+          publicKeySignatures[signaturePacket.publicKey] = signaturePacket;
+        }
+
+        const signatures = this.optionalKeys.map((memberPublicKey) => {
+          let signaturePacket = publicKeySignatures[memberPublicKey];
+          return Buffer.from(signaturePacket ? signaturePacket.signature : '', 'hex');
+        });
+
         let signedTxn = {
             moduleID: transaction.moduleID,
             assetID: transaction.assetID,
@@ -205,9 +215,7 @@ class LiskV3DEXAdapter {
             },
             nonce: BigInt(transaction.nonce),
             senderPublicKey: Buffer.from(transaction.senderPublicKey, 'hex'),
-            signatures: transaction.signatures.map((signaturePacket) => {
-                return Buffer.from(signaturePacket.signature, 'hex');
-            }),
+            signatures,
             id: Buffer.from(transaction.id, 'hex'),
         };
 
@@ -251,11 +259,13 @@ class LiskV3DEXAdapter {
         await this.channel.invoke('app:updateModuleState', {
             [this.alias]: {},
         });
-        await channel.publish(`${this.alias}:${this.MODULE_BOOTSTRAP_EVENT}`);
 
         const account = await this.liskServiceRepo.getAccountByAddress(this.dexWalletAddress);
         const {mandatoryKeys, optionalKeys} = account.keys;
         this.dexMultiSigPublicKeys = Array.from(new Set([...mandatoryKeys, ...optionalKeys, account.summary.publicKey]));
+        this.optionalKeys = optionalKeys;
+
+        await channel.publish(`${this.alias}:${this.MODULE_BOOTSTRAP_EVENT}`);
 
         const publishBlockChangeEvent = async (eventType, block) => {
             const eventPayload = {
