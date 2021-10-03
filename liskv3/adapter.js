@@ -7,7 +7,6 @@ const {
 const {toBuffer} = require('../common/utils');
 const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistError, accountWasNotMultisigError, accountDidNotExistError, transactionBroadcastError} = require('./errors');
 const LiskServiceRepository = require('../lisk-service/repository');
-const {getMatchingKeySignatures} = require('../common/signature');
 const httpClient = require('../lisk-service/client');
 const LiskWSClient = require('lisk-v3-ws-client-manager');
 const {blockMapper, transactionMapper} = require('./mapper');
@@ -24,6 +23,7 @@ class LiskV3DEXAdapter {
         this.alias = alias || DEFAULT_MODULE_ALIAS;
         this.logger = logger;
         this.dexWalletAddress = config.dexWalletAddress;
+        this.chainSymbol = config.chainSymbol || 'lsk';
         this.liskServiceRepo = new LiskServiceRepository({config, logger});
         this.liskWsClient = new LiskWSClient({config, logger});
     }
@@ -60,13 +60,13 @@ class LiskV3DEXAdapter {
         };
     }
 
-    isMultiSigAccount = (account) => account.summary && account.summary.isMultisignature;
+    isMultisigAccount = (account) => account.summary && account.summary.isMultisignature;
 
     getMultisigWalletMembers = async ({params: {walletAddress}}) => {
         try {
             const account = await this.liskServiceRepo.getAccountByAddress(walletAddress);
             if (account) {
-                if (!this.isMultiSigAccount(account)) {
+                if (!this.isMultisigAccount(account)) {
                     throw new InvalidActionError(accountWasNotMultisigError, `Account with address ${walletAddress} is not a multisig account`);
                 }
                 return account.keys.members.map(({address}) => address);
@@ -84,7 +84,7 @@ class LiskV3DEXAdapter {
         try {
             const account = await this.liskServiceRepo.getAccountByAddress(walletAddress);
             if (account) {
-                if (!this.isMultiSigAccount(account)) {
+                if (!this.isMultisigAccount(account)) {
                     throw new InvalidActionError(accountWasNotMultisigError, `Account with address ${walletAddress} is not a multisig account`);
                 }
                 return account.keys.numberOfSignatures;
@@ -196,12 +196,12 @@ class LiskV3DEXAdapter {
 
         let publicKeySignatures = {};
         for (let signaturePacket of transaction.signatures) {
-          publicKeySignatures[signaturePacket.publicKey] = signaturePacket;
+            publicKeySignatures[signaturePacket.publicKey] = signaturePacket;
         }
 
-        const signatures = this.optionalKeys.map((memberPublicKey) => {
-          let signaturePacket = publicKeySignatures[memberPublicKey];
-          return Buffer.from(signaturePacket ? signaturePacket.signature : '', 'hex');
+        const signatures = this.dexMultisigPublicKeys.map((memberPublicKey) => {
+            let signaturePacket = publicKeySignatures[memberPublicKey];
+            return Buffer.from(signaturePacket ? signaturePacket.signature : '', 'hex');
         });
 
         let signedTxn = {
@@ -262,8 +262,7 @@ class LiskV3DEXAdapter {
 
         const account = await this.liskServiceRepo.getAccountByAddress(this.dexWalletAddress);
         const {mandatoryKeys, optionalKeys} = account.keys;
-        this.dexMultiSigPublicKeys = Array.from(new Set([...mandatoryKeys, ...optionalKeys, account.summary.publicKey]));
-        this.optionalKeys = optionalKeys;
+        this.dexMultisigPublicKeys = Array.from(new Set([...mandatoryKeys, ...optionalKeys]));
 
         await channel.publish(`${this.alias}:${this.MODULE_BOOTSTRAP_EVENT}`);
 
@@ -300,28 +299,15 @@ class LiskV3DEXAdapter {
         await this.liskWsClient.close();
     }
 
-    _getSignedTransactionBytes = async (transactionId) => {
-        const wsClient = await this.liskWsClient.createWsClient();
-        const transaction = await wsClient.transaction.get(transactionId);
-        const unsignedTransaction = {...transaction, signatures: []};
-        return wsClient.transaction.encode(unsignedTransaction);
-    };
-
-    _signatureMapper = async ({id, sender, signatures = []}) => {
-        if (sender.address === this.dexWalletAddress) {
-            const transactionBytes = await this._getSignedTransactionBytes(id);
-            return getMatchingKeySignatures(this.dexMultiSigPublicKeys, signatures, transactionBytes, toBuffer(this.networkIdentifier));
-        }
-        return [];
-    };
-
     transactionMapper = async (transaction) => {
-        const keySignatureMapping = await this._signatureMapper(transaction);
-        transaction.signatures = keySignatureMapping.map(({publicKey, signature}) => {
-            const signerAddress = getBase32AddressFromPublicKey(toBuffer(publicKey), 'lsk');
-            return {signerAddress, signature};
-        });
-        return transactionMapper(transaction);
+        let sanitizedTransaction = {
+          ...transaction,
+          signatures: this.dexMultisigPublicKeys.map((publicKey, index) => {
+              const signerAddress = getBase32AddressFromPublicKey(toBuffer(publicKey), this.chainSymbol);
+              return {signerAddress, publicKey, signature: transaction.signatures[index]};
+          })
+        };
+        return transactionMapper(sanitizedTransaction);
     };
 }
 
