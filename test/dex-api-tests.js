@@ -17,9 +17,9 @@ describe('DEX API tests', async () => {
     before(async () => {
         adapterModule = new LiskV3DEXAdapterModule({
             config: {
-              env: 'test',
-              dexWalletAddress: 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4',
-              rpcURL: 'ws://216.128.135.183:8080/ws'
+                env: 'test',
+                dexWalletAddress: 'lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4',
+                rpcURL: 'ws://216.128.135.183:8080/ws'
             },
             logger: {
                 info: () => {
