@@ -87,6 +87,7 @@ describe('DEX API tests', async () => {
                         walletAddress: multiSigWalletAddress,
                     },
                 });
+
                 const memberAddessList = ['lsk5gjpsoqgchb8shk8hvwez6ddx3a4b8gga59rw4', 'lskmpnnwk2dcrywz6egczeducykso8ykyj9ppdsrh'];
 
                 // Must be an array of wallet address strings.
@@ -505,7 +506,7 @@ describe('DEX API tests', async () => {
                 // The format of each signature object is flexible depending on the output of the ChainCrypto
                 // adapter but it will have a 'signerAddress' property.
                 // The chain module can handle the transaction and signature objects however it wants.
-                let preparedTxn = await clientForger.prepareTransaction({
+                let preparedTxn = await client.prepareTransaction({
                     type: 'transfer',
                     recipientAddress: 'ldpos5f0bc55450657f7fcb188e90122f7e4cee894199',
                     amount: '3300000000',

@@ -1,5 +1,9 @@
 const axios = require('axios');
 
+const HttpGetRequestFn = (path, params) => (baseURL) => axios.get(`${baseURL}${path}`, {params});
+const HttpPostRequestFn = (path, payload) => (baseURL) => axios.post(`${baseURL}${path}`, payload);
+const notFound = (err) => err && err.response && err.response.status === 404;
+
 class HttpClient {
 
     constructor({config, logger}) {
@@ -8,13 +12,7 @@ class HttpClient {
         this.logger = logger;
     }
 
-    static HttpGetRequestFn = (path, params) => (baseURL) => axios.get(`${baseURL}${path}`, {params});
-
-    static HttpPostRequestFn = (path, payload) => (baseURL) => axios.post(`${baseURL}${path}`, payload);
-
-    static notFound = (err) => err && err.response && err.response.status === 404;
-
-    tryWithFallback = async (requestFn) => {
+    async tryWithFallback(requestFn) {
         if (!(this.fallbacks && this.fallbacks.length > 0)) {
             this.logger.warn('No fallbacks found');
             return null;
@@ -30,23 +28,27 @@ class HttpClient {
             }
         }
         return null;
-    };
+    }
 
-    canFallback = (err) => !(err && err.response && err.response.status < 500);
+    canFallback(err) {
+        return !(err && err.response && err.response.status < 500);
+    }
 
-    setActiveHost = (host) => {
+    setActiveHost(host) {
         if (host === this.activeHost) {
             return;
         }
         this.fallbacks = this.fallbacks.filter(fallback => fallback !== host);
         this.fallbacks.push(this.getPreferredHost()); // push prev fallback host
         this.activeHost = host;
-    };
+    }
 
-    getPreferredHost = () => this.activeHost ? this.activeHost : this.baseURL;
+    getPreferredHost() {
+      return this.activeHost ? this.activeHost : this.baseURL;
+    }
 
-    get = async (path, params) => {
-        const getReqFn = HttpClient.HttpGetRequestFn(path, params);
+    async get(path, params) {
+        const getReqFn = HttpGetRequestFn(path, params);
         try {
             return await getReqFn(this.getPreferredHost());
         } catch (err) {
@@ -59,10 +61,10 @@ class HttpClient {
             }
             throw err;
         }
-    };
+    }
 
-    post = async (path, payload) => {
-        const postReqFn = HttpClient.HttpPostRequestFn(path, payload);
+    async post(path, payload) {
+        const postReqFn = HttpPostRequestFn(path, payload);
         try {
             return await postReqFn(this.getPreferredHost());
         } catch (err) {
@@ -75,7 +77,10 @@ class HttpClient {
             }
             throw err;
         }
-    };
+    }
 }
 
-module.exports = HttpClient;
+module.exports = {
+  HttpClient,
+  notFound
+};

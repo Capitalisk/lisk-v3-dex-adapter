@@ -1,21 +1,21 @@
 const {firstOrNull} = require('../common/utils');
 
-const HttpClient = require('./client');
+const {HttpClient} = require('./client');
 const metaStore = require('./meta');
 
-class LiskServiceRepository {
+const defaultTestNetURL = 'https://testnet-service.lisk.com';
+const defaultMainNetURL = 'https://service.lisk.com';
 
-    static defaultTestNetURL = 'https://testnet-service.lisk.com';
-    static defaultMainNetURL = 'https://service.lisk.com';
+class LiskServiceRepository {
 
     constructor({config = {}, logger = console}) {
         this.liskServiceClient = new HttpClient({config: this.getDefaultHttpClientConfig(config), logger});
     }
 
-    getDefaultHttpClientConfig = (config) => {
-        let defaultURL = LiskServiceRepository.defaultMainNetURL;
+    getDefaultHttpClientConfig(config) {
+        let defaultURL = defaultMainNetURL;
         if (config.env === 'test') {
-            defaultURL = LiskServiceRepository.defaultTestNetURL;
+            defaultURL = defaultTestNetURL;
         }
         const baseURL = config.serviceURL ? config.serviceURL : defaultURL;
         if (!config.serviceURLFallbacks) {
@@ -32,38 +32,52 @@ class LiskServiceRepository {
      * @returns {Promise<*>}
      */
 
-    get = async (metaStorePath, filterParams = {}) => {
+    async get(metaStorePath, filterParams = {}) {
         const response = await this.liskServiceClient.get(metaStorePath, filterParams);
         return response.data;
     };
 
-    post = async (metaStorePath, payload = {}) => {
+    async post(metaStorePath, payload = {}) {
         const response = await this.liskServiceClient.post(metaStorePath, payload);
         return response.data;
     };
 
-    postTransaction = async (payload) => await this.post(metaStore.Transactions.path, payload);
+    async postTransaction(payload) {
+      return this.post(metaStore.Transactions.path, payload);
+    };
 
-    getNetworkStatus = async () => await this.get('/api/v2/network/status');
+    async getNetworkStatus() {
+      return this.get('/api/v2/network/status');
+    };
 
-    getNetworkStats = async () => await this.get('/api/v2/network/statistics');
+    async getNetworkStats() {
+      return this.get('/api/v2/network/statistics');
+    };
 
-    getFees = async () => await this.get('/api/v2/fees');
+    async getFees() {
+      return this.get('/api/v2/fees');
+    };
 
-    getAccounts = async (filterParams) => (await this.get(metaStore.Accounts.path, filterParams)).data;
+    async getAccounts(filterParams) {
+      return (await this.get(metaStore.Accounts.path, filterParams)).data;
+    };
 
-    getTransactions = async (filterParams) => (await this.get(metaStore.Transactions.path, filterParams)).data;
+    async getTransactions(filterParams) {
+      return (await this.get(metaStore.Transactions.path, filterParams)).data;
+    };
 
-    getBlocks = async (filterParams) => (await this.get(metaStore.Blocks.path, filterParams)).data;
+    async getBlocks(filterParams) {
+      return (await this.get(metaStore.Blocks.path, filterParams)).data;
+    };
 
-    getAccountByAddress = async (walletAddress) => {
+    async getAccountByAddress(walletAddress) {
         const accounts = await this.getAccounts({
             [metaStore.Accounts.filter.address]: walletAddress,
         });
         return firstOrNull(accounts);
     };
 
-    getOutboundTransactions = async (senderAddress, fromTimestamp, limit, order = 'asc') => {
+    async getOutboundTransactions(senderAddress, fromTimestamp, limit, order = 'asc') {
         const transactionFilterParams = {
             [metaStore.Transactions.filter.senderAddress]: senderAddress,
             [metaStore.Transactions.filter.limit]: limit,
@@ -80,7 +94,7 @@ class LiskServiceRepository {
         return await this.getTransactions(transactionFilterParams);
     };
 
-    getInboundTransactionsFromBlock = async (recipientAddress, blockId) => {
+    async getInboundTransactionsFromBlock(recipientAddress, blockId) {
         const transactionFilterParams = {
             [metaStore.Transactions.filter.recipientAddress]: recipientAddress,
             [metaStore.Transactions.filter.blockId]: blockId,
@@ -90,7 +104,7 @@ class LiskServiceRepository {
         return await this.getTransactions(transactionFilterParams);
     };
 
-    getOutboundTransactionsFromBlock = async (senderAddress, blockId) => {
+    async getOutboundTransactionsFromBlock(senderAddress, blockId) {
         const transactionFilterParams = {
             [metaStore.Transactions.filter.senderAddress]: senderAddress,
             [metaStore.Transactions.filter.blockId]: blockId,
@@ -100,7 +114,7 @@ class LiskServiceRepository {
         return await this.getTransactions(transactionFilterParams);
     };
 
-    getLastBlockBelowTimestamp = async (timeStamp) => {
+    async getLastBlockBelowTimestamp(timeStamp) {
         const blockFilterParams = {
             [metaStore.Blocks.filter.timestamp]: `0:${timeStamp}`,
             [metaStore.Blocks.filter.sort]: metaStore.Blocks.sortBy.timestampDesc,
@@ -110,7 +124,7 @@ class LiskServiceRepository {
         return firstOrNull(blocks);
     };
 
-    getLastBlock = async () => {
+    async getLastBlock() {
         const blockFilterParams = {
             [metaStore.Blocks.filter.sort]: metaStore.Blocks.sortBy.heightDesc,
             [metaStore.Blocks.filter.limit]: 1,
@@ -119,7 +133,7 @@ class LiskServiceRepository {
         return firstOrNull(blocks);
     };
 
-    getBlocksBetweenHeights = async (fromHeight, toHeight, limit) => {
+    async getBlocksBetweenHeights(fromHeight, toHeight, limit) {
         const blockFilterParams = {
             [metaStore.Blocks.filter.height]: `${fromHeight}:${toHeight}`,
             [metaStore.Blocks.filter.sort]: metaStore.Blocks.sortBy.heightAsc,
@@ -132,7 +146,7 @@ class LiskServiceRepository {
         return blocks;
     };
 
-    getBlockAtHeight = async (height) => {
+    async getBlockAtHeight(height) {
         const blockFilterParams = {
             [metaStore.Blocks.filter.height]: height,
         };

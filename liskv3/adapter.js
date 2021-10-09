@@ -7,17 +7,17 @@ const {
 const {toBuffer} = require('../common/utils');
 const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistError, accountWasNotMultisigError, accountDidNotExistError, transactionBroadcastError} = require('./errors');
 const LiskServiceRepository = require('../lisk-service/repository');
-const httpClient = require('../lisk-service/client');
+const {notFound} = require('../lisk-service/client');
 const LiskWSClient = require('lisk-v3-ws-client-manager');
 const {blockMapper, transactionMapper} = require('./mapper');
 const packageJSON = require('../package.json');
 const DEFAULT_MODULE_ALIAS = 'lisk_v3_dex_adapter';
 
-class LiskV3DEXAdapter {
+const MODULE_BOOTSTRAP_EVENT = 'bootstrap';
+const MODULE_CHAIN_STATE_CHANGES_EVENT = 'chainChanges';
+const MODULE_LISK_WS_CLOSE_EVENT = 'wsConnClose';
 
-    MODULE_BOOTSTRAP_EVENT = 'bootstrap';
-    MODULE_CHAIN_STATE_CHANGES_EVENT = 'chainChanges';
-    MODULE_LISK_WS_CLOSE_EVENT = 'wsConnClose';
+class LiskV3DEXAdapter {
 
     constructor({alias, config = {}, logger = console} = {config: {}, logger: console}) {
         this.alias = alias || DEFAULT_MODULE_ALIAS;
@@ -26,6 +26,21 @@ class LiskV3DEXAdapter {
         this.chainSymbol = config.chainSymbol || 'lsk';
         this.liskServiceRepo = new LiskServiceRepository({config, logger});
         this.liskWsClient = new LiskWSClient({config, logger});
+
+        this.transactionMapper = async (transaction) => {
+            let sanitizedTransaction = {
+              ...transaction,
+              signatures: this.dexMultisigPublicKeys.map((publicKey, index) => {
+                  const signerAddress = getBase32AddressFromPublicKey(toBuffer(publicKey), this.chainSymbol);
+                  return {signerAddress, publicKey, signature: transaction.signatures[index]};
+              })
+            };
+            return transactionMapper(sanitizedTransaction);
+        };
+
+        this.MODULE_BOOTSTRAP_EVENT = MODULE_BOOTSTRAP_EVENT;
+        this.MODULE_CHAIN_STATE_CHANGES_EVENT = MODULE_CHAIN_STATE_CHANGES_EVENT;
+        this.MODULE_LISK_WS_CLOSE_EVENT = MODULE_LISK_WS_CLOSE_EVENT;
     }
 
     get dependencies() {
@@ -41,28 +56,30 @@ class LiskV3DEXAdapter {
     }
 
     get events() {
-        return [this.MODULE_BOOTSTRAP_EVENT, this.MODULE_CHAIN_STATE_CHANGES_EVENT, this.MODULE_LISK_WS_CLOSE_EVENT];
+        return [MODULE_BOOTSTRAP_EVENT, MODULE_CHAIN_STATE_CHANGES_EVENT, MODULE_LISK_WS_CLOSE_EVENT];
     }
 
     get actions() {
         return {
             getStatus: {handler: () => ({version: packageJSON.version})},
-            getMultisigWalletMembers: {handler: this.getMultisigWalletMembers},
-            getMinMultisigRequiredSignatures: {handler: this.getMinMultisigRequiredSignatures},
-            getOutboundTransactions: {handler: this.getOutboundTransactions},
-            getInboundTransactionsFromBlock: {handler: this.getInboundTransactionsFromBlock},
-            getOutboundTransactionsFromBlock: {handler: this.getOutboundTransactionsFromBlock},
-            getLastBlockAtTimestamp: {handler: this.getLastBlockAtTimestamp},
-            getMaxBlockHeight: {handler: this.getMaxBlockHeight},
-            getBlocksBetweenHeights: {handler: this.getBlocksBetweenHeights},
-            getBlockAtHeight: {handler: this.getBlockAtHeight},
-            postTransaction: {handler: this.postTransaction},
+            getMultisigWalletMembers: {handler: (action) => this.getMultisigWalletMembers(action)},
+            getMinMultisigRequiredSignatures: {handler: (action) => this.getMinMultisigRequiredSignatures(action)},
+            getOutboundTransactions: {handler: (action) => this.getOutboundTransactions(action)},
+            getInboundTransactionsFromBlock: {handler: (action) => this.getInboundTransactionsFromBlock(action)},
+            getOutboundTransactionsFromBlock: {handler: (action) => this.getOutboundTransactionsFromBlock(action)},
+            getLastBlockAtTimestamp: {handler: (action) => this.getLastBlockAtTimestamp(action)},
+            getMaxBlockHeight: {handler: (action) => this.getMaxBlockHeight(action)},
+            getBlocksBetweenHeights: {handler: (action) => this.getBlocksBetweenHeights(action)},
+            getBlockAtHeight: {handler: (action) => this.getBlockAtHeight(action)},
+            postTransaction: {handler: (action) => this.postTransaction(action)},
         };
     }
 
-    isMultisigAccount = (account) => account.summary && account.summary.isMultisignature;
+    isMultisigAccount(account) {
+      return account.summary && account.summary.isMultisignature;
+    }
 
-    getMultisigWalletMembers = async ({params: {walletAddress}}) => {
+    async getMultisigWalletMembers({params: {walletAddress}}) {
         try {
             const account = await this.liskServiceRepo.getAccountByAddress(walletAddress);
             if (account) {
@@ -78,9 +95,9 @@ class LiskV3DEXAdapter {
             }
             throw new InvalidActionError(multisigAccountDidNotExistError, `Error getting multisig account with address ${walletAddress}`, err);
         }
-    };
+    }
 
-    getMinMultisigRequiredSignatures = async ({params: {walletAddress}}) => {
+    async getMinMultisigRequiredSignatures({params: {walletAddress}}) {
         try {
             const account = await this.liskServiceRepo.getAccountByAddress(walletAddress);
             if (account) {
@@ -98,43 +115,43 @@ class LiskV3DEXAdapter {
         }
     };
 
-    getOutboundTransactions = async ({params: {walletAddress, fromTimestamp, limit, order}}) => {
+    async getOutboundTransactions({params: {walletAddress, fromTimestamp, limit, order}}) {
         try {
             const transactions = await this.liskServiceRepo.getOutboundTransactions(walletAddress, fromTimestamp, limit, order);
             return await Promise.all(transactions.map(this.transactionMapper));
         } catch (err) {
-            if (httpClient.notFound(err)) {
+            if (notFound(err)) {
                 return [];
             }
             throw new InvalidActionError(accountDidNotExistError, `Error getting outbound transactions with account address ${walletAddress}`, err);
         }
     };
 
-    getInboundTransactionsFromBlock = async ({params: {walletAddress, blockId}}) => {
+    async getInboundTransactionsFromBlock({params: {walletAddress, blockId}}) {
         try {
             const transactions = await this.liskServiceRepo.getInboundTransactionsFromBlock(walletAddress, blockId);
             return await Promise.all(transactions.map(this.transactionMapper));
         } catch (err) {
-            if (httpClient.notFound(err)) {
+            if (notFound(err)) {
                 return [];
             }
             throw new InvalidActionError(accountDidNotExistError, `Error getting inbound transactions with account address ${walletAddress}`, err);
         }
     };
 
-    getOutboundTransactionsFromBlock = async ({params: {walletAddress, blockId}}) => {
+    async getOutboundTransactionsFromBlock({params: {walletAddress, blockId}}) {
         try {
             const transactions = await this.liskServiceRepo.getOutboundTransactionsFromBlock(walletAddress, blockId);
             return await Promise.all(transactions.map(this.transactionMapper));
         } catch (err) {
-            if (httpClient.notFound(err)) {
+            if (notFound(err)) {
                 return [];
             }
             throw new InvalidActionError(accountDidNotExistError, `Error getting outbound transactions with account address ${walletAddress}`, err);
         }
     };
 
-    getLastBlockAtTimestamp = async ({params: {timestamp}}) => {
+    async getLastBlockAtTimestamp({params: {timestamp}}) {
         try {
             const block = await this.liskServiceRepo.getLastBlockBelowTimestamp(timestamp);
             if (block) {
@@ -149,7 +166,7 @@ class LiskV3DEXAdapter {
         }
     };
 
-    getMaxBlockHeight = async () => {
+    async getMaxBlockHeight() {
         try {
             const block = await this.liskServiceRepo.getLastBlock();
             if (block) {
@@ -164,19 +181,19 @@ class LiskV3DEXAdapter {
         }
     };
 
-    getBlocksBetweenHeights = async ({params: {fromHeight, toHeight, limit}}) => {
+    async getBlocksBetweenHeights({params: {fromHeight, toHeight, limit}}) {
         try {
             const blocks = await this.liskServiceRepo.getBlocksBetweenHeights(fromHeight, toHeight, limit);
             return blocks.map(blockMapper);
         } catch (err) {
-            if (httpClient.notFound(err)) {
+            if (notFound(err)) {
                 return [];
             }
             throw new InvalidActionError(blockDidNotExistError, `Error getting block between heights ${fromHeight} - ${toHeight}`, err);
         }
     };
 
-    getBlockAtHeight = async ({params: {height}}) => {
+    async getBlockAtHeight({params: {height}}) {
         try {
             const block = await this.liskServiceRepo.getBlockAtHeight(height);
             if (block) {
@@ -191,7 +208,7 @@ class LiskV3DEXAdapter {
         }
     };
 
-    postTransaction = async ({params: {transaction}}) => {
+    async postTransaction({params: {transaction}}) {
         const wsClient = await this.liskWsClient.createWsClient();
 
         let publicKeySignatures = {};
@@ -230,7 +247,7 @@ class LiskV3DEXAdapter {
         }
     };
 
-    subscribeToBlockChange = async (wsClient, onBlockChangedEvent) => {
+    async subscribeToBlockChange(wsClient, onBlockChangedEvent) {
         const decodedBlock = (data) => wsClient.block.decode(Buffer.from(data.block, 'hex'));
         wsClient.subscribe('app:block:new', async data => {
             try {
@@ -265,7 +282,7 @@ class LiskV3DEXAdapter {
         const {mandatoryKeys, optionalKeys} = account.keys;
         this.dexMultisigPublicKeys = Array.from(new Set([...mandatoryKeys, ...optionalKeys]));
 
-        await channel.publish(`${this.alias}:${this.MODULE_BOOTSTRAP_EVENT}`);
+        await channel.publish(`${this.alias}:${MODULE_BOOTSTRAP_EVENT}`);
 
         const publishBlockChangeEvent = async (eventType, block) => {
             const eventPayload = {
@@ -275,7 +292,7 @@ class LiskV3DEXAdapter {
                     height: block.header.height,
                 },
             };
-            await channel.publish(`${this.alias}:${this.MODULE_CHAIN_STATE_CHANGES_EVENT}`, eventPayload);
+            await channel.publish(`${this.alias}:${MODULE_CHAIN_STATE_CHANGES_EVENT}`, eventPayload);
         };
         const wsClient = await this.liskWsClient.createWsClient(true);
         this.networkIdentifier = wsClient._nodeInfo.networkIdentifier;
@@ -292,24 +309,13 @@ class LiskV3DEXAdapter {
                 type: 'LiskNodeWsConnectionErr',
                 err,
             };
-            await channel.publish(`${this.alias}:${this.MODULE_LISK_WS_CLOSE_EVENT}`, errPayload);
+            await channel.publish(`${this.alias}:${MODULE_LISK_WS_CLOSE_EVENT}`, errPayload);
         };
     }
 
     async unload() {
         await this.liskWsClient.close();
     }
-
-    transactionMapper = async (transaction) => {
-        let sanitizedTransaction = {
-          ...transaction,
-          signatures: this.dexMultisigPublicKeys.map((publicKey, index) => {
-              const signerAddress = getBase32AddressFromPublicKey(toBuffer(publicKey), this.chainSymbol);
-              return {signerAddress, publicKey, signature: transaction.signatures[index]};
-          })
-        };
-        return transactionMapper(sanitizedTransaction);
-    };
 }
 
 module.exports = LiskV3DEXAdapter;
