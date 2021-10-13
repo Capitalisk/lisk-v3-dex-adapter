@@ -7,7 +7,6 @@ const {
 const {toBuffer} = require('../common/utils');
 const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistError, accountWasNotMultisigError, accountDidNotExistError, transactionBroadcastError} = require('./errors');
 const LiskServiceRepository = require('../lisk-service/repository');
-const {notFound} = require('../lisk-service/client');
 const LiskWSClient = require('lisk-v3-ws-client-manager');
 const {blockMapper, transactionMapper} = require('./mapper');
 const packageJSON = require('../package.json');
@@ -16,6 +15,8 @@ const DEFAULT_MODULE_ALIAS = 'lisk_v3_dex_adapter';
 const MODULE_BOOTSTRAP_EVENT = 'bootstrap';
 const MODULE_CHAIN_STATE_CHANGES_EVENT = 'chainChanges';
 const MODULE_LISK_WS_CLOSE_EVENT = 'wsConnClose';
+
+const notFound = (err) => err && err.response && err.response.status === 404;
 
 class LiskV3DEXAdapter {
 

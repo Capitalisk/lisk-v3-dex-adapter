@@ -1,6 +1,5 @@
 const {firstOrNull} = require('../common/utils');
 
-const {HttpClient} = require('./client');
 const metaStore = require('./meta');
 const axios = require('axios');
 
