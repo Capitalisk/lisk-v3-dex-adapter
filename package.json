@@ -1,6 +1,6 @@
 {
   "name": "lisk-v3-dex-adapter",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "DEX adapter module for lisk-core v3 blockchain.",
   "main": "index.js",
   "scripts": {
