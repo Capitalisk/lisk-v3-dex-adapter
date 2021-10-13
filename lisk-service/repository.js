@@ -2,28 +2,20 @@ const {firstOrNull} = require('../common/utils');
 
 const {HttpClient} = require('./client');
 const metaStore = require('./meta');
+const axios = require('axios');
 
-const defaultTestNetURL = 'https://testnet-service.lisk.com';
-const defaultMainNetURL = 'https://service.lisk.com';
+const DEFAULT_MAIN_NET_URL = 'https://service.lisk.com';
+const DEFAULT_ACK_TIMEOUT = 20000;
 
 class LiskServiceRepository {
 
     constructor({config = {}, logger = console}) {
-        this.liskServiceClient = new HttpClient({config: this.getDefaultHttpClientConfig(config), logger});
+        this.serviceURL = config.serviceURL || DEFAULT_MAIN_NET_URL;
+        this.axiosClient = axios.create({
+            baseURL: this.serviceURL,
+            timeout: config.ackTimeout == null ? DEFAULT_ACK_TIMEOUT : config.ackTimeout
+        });
     }
-
-    getDefaultHttpClientConfig(config) {
-        let defaultURL = defaultMainNetURL;
-        if (config.env === 'test') {
-            defaultURL = defaultTestNetURL;
-        }
-        const baseURL = config.serviceURL ? config.serviceURL : defaultURL;
-        if (!config.serviceURLFallbacks) {
-            config.serviceURLFallbacks = [];
-        }
-        const fallbacks = [...config.serviceURLFallbacks, defaultURL];
-        return {baseURL, fallbacks};
-    };
 
     /**
      * For getting data at given path, with given filter params
@@ -32,42 +24,42 @@ class LiskServiceRepository {
      * @returns {Promise<*>}
      */
 
-    async get(metaStorePath, filterParams = {}) {
-        const response = await this.liskServiceClient.get(metaStorePath, filterParams);
+    async get(path, params = {}) {
+        const response = await this.axiosClient.get(`${this.serviceURL}${path}`, {params});
         return response.data;
     };
 
-    async post(metaStorePath, payload = {}) {
-        const response = await this.liskServiceClient.post(metaStorePath, payload);
+    async post(path, payload = {}) {
+        const response = await this.axiosClient.post(`${this.serviceURL}${path}`, payload);
         return response.data;
     };
 
     async postTransaction(payload) {
-      return this.post(metaStore.Transactions.path, payload);
+        return this.post(metaStore.Transactions.path, payload);
     };
 
     async getNetworkStatus() {
-      return this.get('/api/v2/network/status');
+        return this.get('/api/v2/network/status');
     };
 
     async getNetworkStats() {
-      return this.get('/api/v2/network/statistics');
+        return this.get('/api/v2/network/statistics');
     };
 
     async getFees() {
-      return this.get('/api/v2/fees');
+        return this.get('/api/v2/fees');
     };
 
     async getAccounts(filterParams) {
-      return (await this.get(metaStore.Accounts.path, filterParams)).data;
+        return (await this.get(metaStore.Accounts.path, filterParams)).data;
     };
 
     async getTransactions(filterParams) {
-      return (await this.get(metaStore.Transactions.path, filterParams)).data;
+        return (await this.get(metaStore.Transactions.path, filterParams)).data;
     };
 
     async getBlocks(filterParams) {
-      return (await this.get(metaStore.Blocks.path, filterParams)).data;
+        return (await this.get(metaStore.Blocks.path, filterParams)).data;
     };
 
     async getAccountByAddress(walletAddress) {
