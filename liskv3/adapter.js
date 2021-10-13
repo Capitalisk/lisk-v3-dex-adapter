@@ -28,7 +28,7 @@ class LiskV3DEXAdapter {
         this.liskServiceRepo = new LiskServiceRepository({config, logger});
         this.liskWsClient = new LiskWSClient({config, logger});
 
-        this.transactionMapper = async (transaction) => {
+        this.transactionMapper = (transaction) => {
             let sanitizedTransaction = {
               ...transaction,
               signatures: this.dexMultisigPublicKeys.map((publicKey, index) => {
@@ -119,7 +119,7 @@ class LiskV3DEXAdapter {
     async getOutboundTransactions({params: {walletAddress, fromTimestamp, limit, order}}) {
         try {
             const transactions = await this.liskServiceRepo.getOutboundTransactions(walletAddress, fromTimestamp, limit, order);
-            return await Promise.all(transactions.map(this.transactionMapper));
+            return transactions.map(this.transactionMapper);
         } catch (err) {
             if (notFound(err)) {
                 return [];
@@ -131,7 +131,7 @@ class LiskV3DEXAdapter {
     async getInboundTransactionsFromBlock({params: {walletAddress, blockId}}) {
         try {
             const transactions = await this.liskServiceRepo.getInboundTransactionsFromBlock(walletAddress, blockId);
-            return await Promise.all(transactions.map(this.transactionMapper));
+            return transactions.map(this.transactionMapper);
         } catch (err) {
             if (notFound(err)) {
                 return [];
@@ -143,7 +143,7 @@ class LiskV3DEXAdapter {
     async getOutboundTransactionsFromBlock({params: {walletAddress, blockId}}) {
         try {
             const transactions = await this.liskServiceRepo.getOutboundTransactionsFromBlock(walletAddress, blockId);
-            return await Promise.all(transactions.map(this.transactionMapper));
+            return transactions.map(this.transactionMapper);
         } catch (err) {
             if (notFound(err)) {
                 return [];
@@ -190,7 +190,7 @@ class LiskV3DEXAdapter {
             if (notFound(err)) {
                 return [];
             }
-            throw new InvalidActionError(blockDidNotExistError, `Error getting block between heights ${fromHeight} - ${toHeight}`, err);
+            throw new InvalidActionError(blockDidNotExistError, `Error getting blocks between heights ${fromHeight} - ${toHeight}`, err);
         }
     };
 
