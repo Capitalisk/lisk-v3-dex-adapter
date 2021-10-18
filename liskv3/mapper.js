@@ -12,6 +12,6 @@ const transactionMapper = ({nonce, asset: {amount, recipient, data}, sender, blo
     };
 };
 
-const blockMapper = ({id, height, timestamp}) => ({id, height, timestamp});
+const blockMapper = ({id, height, timestamp, numberOfTransactions}) => ({id, height, timestamp, numberOfTransactions});
 
 module.exports = {transactionMapper, blockMapper};
