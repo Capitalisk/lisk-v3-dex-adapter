@@ -4,12 +4,17 @@ const {
   getBase32AddressFromPublicKey,
   getAddressFromBase32Address,
 } = require('@liskhq/lisk-cryptography');
+
+const shuffle = require('lodash.shuffle');
+const LiskWSClient = require('lisk-v3-ws-client-manager');
+
 const {toBuffer} = require('../common/utils');
 const {InvalidActionError, multisigAccountDidNotExistError, blockDidNotExistError, accountWasNotMultisigError, accountDidNotExistError, transactionBroadcastError} = require('./errors');
 const LiskServiceRepository = require('../lisk-service/repository');
-const LiskWSClient = require('lisk-v3-ws-client-manager');
 const {blockMapper, transactionMapper} = require('./mapper');
 const packageJSON = require('../package.json');
+
+
 const DEFAULT_MODULE_ALIAS = 'lisk_v3_dex_adapter';
 
 const MODULE_BOOTSTRAP_EVENT = 'bootstrap';
@@ -211,9 +216,19 @@ class LiskV3DEXAdapter {
 
     async postTransaction({params: {transaction}}) {
         const wsClient = await this.liskWsClient.createWsClient();
+        let selectedSignatures;
+
+        if (transaction.signatures.length) {
+          selectedSignatures = [
+            transaction.signatures[0],
+            ...shuffle(transaction.signatures.slice(1)).slice(0, this.dexNumberOfSignatures - 1)
+          ];
+        } else {
+          selectedSignatures = [];
+        }
 
         let publicKeySignatures = {};
-        for (let signaturePacket of transaction.signatures) {
+        for (let signaturePacket of selectedSignatures) {
             publicKeySignatures[signaturePacket.publicKey] = signaturePacket;
         }
 
@@ -280,7 +295,8 @@ class LiskV3DEXAdapter {
         });
 
         const account = await this.liskServiceRepo.getAccountByAddress(this.dexWalletAddress);
-        const {mandatoryKeys, optionalKeys} = account.keys;
+        const {mandatoryKeys, optionalKeys, numberOfSignatures} = account.keys;
+        this.dexNumberOfSignatures = numberOfSignatures;
         this.dexMultisigPublicKeys = Array.from(new Set([...mandatoryKeys, ...optionalKeys]));
 
         await channel.publish(`${this.alias}:${MODULE_BOOTSTRAP_EVENT}`);

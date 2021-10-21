@@ -26,7 +26,8 @@
   "dependencies": {
     "@liskhq/lisk-cryptography": "^3.1.0",
     "axios": "^0.21.4",
-    "lisk-v3-ws-client-manager": "^1.0.4"
+    "lisk-v3-ws-client-manager": "^1.0.4",
+    "lodash.shuffle": "^4.2.0"
   },
   "devDependencies": {
     "mocha": "^8.2.1"
