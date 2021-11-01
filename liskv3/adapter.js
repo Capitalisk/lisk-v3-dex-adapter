@@ -36,10 +36,12 @@ class LiskV3DEXAdapter {
         this.transactionMapper = (transaction) => {
             let sanitizedTransaction = {
               ...transaction,
-              signatures: this.dexMultisigPublicKeys.map((publicKey, index) => {
+              signatures: this.dexMultisigPublicKeys
+                .map((publicKey, index) => {
                   const signerAddress = getBase32AddressFromPublicKey(toBuffer(publicKey), this.chainSymbol);
                   return {signerAddress, publicKey, signature: transaction.signatures[index]};
-              })
+                })
+                .filter(signaturePacket => signaturePacket.signature)
             };
             return transactionMapper(sanitizedTransaction);
         };
