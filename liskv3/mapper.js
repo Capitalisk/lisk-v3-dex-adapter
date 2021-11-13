@@ -9,6 +9,7 @@ const transactionMapper = ({nonce, asset: {amount, recipient, data}, sender, blo
         senderAddress: sender.address,
         recipientAddress: recipient.address,
         signatures,
+        nonce,
     };
 };
 
